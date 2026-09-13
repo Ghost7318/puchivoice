@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ぷちボイス Studio ✨</title>
+    <!-- インライン可愛いファビコン (SVG) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>">
+    <style>
+        :root {
+            --primary: #ff758c;
+            --primary-hover: #ff7eb3;
+            --bg-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            --card-bg: #ffffff;
+            --text-color: #4a4a4a;
+            --accent-blue: #70a1ff;
+            --accent-green: #2ed573;
+            --accent-purple: #a55eea;
+            --accent-orange: #ff9f43;
+            --border-radius: 16px;
+        }
+
+        * { box-sizing: border-box; touch-action: manipulation; }
+
+        body {
+            font-family: 'Hiragino Maru Gothic ProN', 'Meiryo UI', 'M PLUS Rounded 1c', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            margin: 0;
+            padding: 12px;
+            min-height: 100vh;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+        }
+        .app-header h1 {
+            font-size: 1.8em;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .app-header p {
+            margin: 3px 0 0;
+            font-size: 0.85em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 850px) {
+            .container { grid-template-columns: 1fr; }
+            body { padding: 8px; }
+            .app-header h1 { font-size: 1.5em; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 18px;
+            box-shadow: 0 8px 20px rgba(255, 117, 140, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1.15em;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 2px dashed #ffe0e6;
+            padding-bottom: 8px;
+        }
+
+        .assist-bar {
+            background: #fff5f7;
+            border: 1px solid #ffd1dc;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+        .assist-title {
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #d63031;
+            margin-bottom: 6px;
+        }
+        .assist-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .lib-controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 12px;
+            align-items: center;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-btn {
+            background: #f1f2f6;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8em;
+            white-space: nowrap;
+            color: #666;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 117, 140, 0.4);
+        }
+
+        .grid-container {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .char-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 6px;
+        }
+        .char-card {
+            background: #fafafa;
+            border: 1.5px solid #eee;
+            border-radius: 10px;
+            padding: 5px 3px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .char-card.recorded {
+            background: #e8fae8;
+            border-color: #7bed9f;
+        }
+        .char-card.selected {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 8px rgba(165, 94, 234, 0.4);
+        }
+        .char-name {
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        .btn-mini {
+            border: none;
+            border-radius: 10px;
+            padding: 5px 4px;
+            font-size: 0.72em;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 2px;
+            font-weight: bold;
+            transition: 0.2s;
+            min-height: 28px;
+        }
+        .btn-rec { background: #ff4757; color: white; }
+        .btn-rec.recording { animation: pulse 1s infinite; background: #ff6b81; }
+        .btn-play { background: var(--accent-blue); color: white; }
+        .btn-play:disabled { background: #dfe4ea; cursor: not-allowed; }
+        .btn-trim { background: var(--accent-purple); color: white; }
+        .btn-trim:disabled { background: #dfe4ea; cursor: not-allowed; }
+
+        .trim-panel {
+            background: #f8efed;
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px dashed #ffa8b6;
+        }
+        .trim-title {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #d63031;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 70px;
+            border: 2px solid #ffe0e6;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 0.95em;
+            box-sizing: border-box;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+        }
+        textarea:focus { border-color: var(--primary); }
+
+        .param-group {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .param-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85em;
+        }
+        .param-row label { width: 110px; font-weight: bold; cursor: pointer; }
+        .param-row label:hover { color: var(--primary); }
+        .param-row input[type="range"] { flex: 1; margin: 0 8px; accent-color: var(--primary); cursor: pointer; }
+        .param-val { width: 50px; text-align: right; color: var(--primary); font-weight: bold; }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+        .btn-main {
+            flex: 1;
+            padding: 12px 14px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-height: 44px;
+        }
+        .btn-talk { background: var(--primary); color: white; }
+        .btn-talk:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-save-wav { background: var(--accent-green); color: white; }
+        .btn-save-wav:hover { background: #26af5f; transform: translateY(-1px); }
+
+        .btn-util {
+            background: white;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            padding: 5px 8px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-util:hover { background: #fff0f3; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 15px;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .modal-char {
+            font-size: 3.8em;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+        .modal-controls {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        canvas {
+            touch-action: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <h1>✨ ぷちボイス Studio</h1>
+        <p>声で作るおしゃべりスタジオ</p>
+    </div>
+
+    <div class="container">
+        <!-- 左パネル：ボイスライブラリ作成 -->
+        <div class="card">
+            <h2 class="card-title">🎤 ボイスライブラリ</h2>
+            
+            <div class="assist-bar">
+                <div class="assist-title">⚡ 録音アシスト＆自動生成 (※ダブルクリックで初期化)</div>
+                <div class="assist-buttons">
+                    <button class="btn-util" style="background:#fff0f6;" onclick="generateDefaultVoice()">✨ おまかせ全自動生成</button>
+                    <button class="btn-util" style="background:#e6fffa;" onclick="fillVowelsOnly()">⚡ 5音(あいうえお)自動補完</button>
+                    <button class="btn-util" style="background:#fffbe6;" onclick="startContinuousRecording()">🚀 連続録音ガイド</button>
+                    <button class="btn-util" style="background:#fff0f0; color:#e74c3c; border-color:#ff7875;" onclick="clearAllRecordings()">🗑️ 一括クリア</button>
+                </div>
+            </div>
+
+            <div class="lib-controls">
+                <input type="text" id="lib-icon" value="🎙️" title="ライブラリのアイコン" style="padding: 4px; border: 1px solid #ffccd5; border-radius: 8px; width: 34px; text-align: center; font-size: 0.9em;">
+                <input type="text" id="lib-name" value="マイボイス" placeholder="声の名前" style="padding: 4px; border: 1px solid #ffccd5; border-radius: 8px; width: 100px; font-size:0.8em;">
+                <button class="btn-util" onclick="exportLibrary()">📤 保存</button>
+                <button class="btn-util" onclick="document.getElementById('import-file').click()">📥 読込</button>
+                <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importLibrary(this)">
+            </div>
+
+            <!-- 音素カテゴリタブ -->
+            <div class="tabs" id="tab-container"></div>
+
+            <!-- 音素グリッド -->
+            <div class="grid-container">
+                <div class="char-grid" id="char-grid"></div>
+            </div>
+
+            <!-- 音素切り出し調整エリア -->
+            <div class="trim-panel" id="trim-panel">
+                <div class="trim-title">
+                    <span id="trim-char-title">✂️ 音素の調整（未選択）</span>
+                    <button class="btn-util" id="btn-preview-trim" onclick="playTrimmedSelected()" disabled style="padding: 3px 8px; font-size:0.75em;">▶ 試聴</button>
+                </div>
+
+                <!-- 波形表示キャンバス -->
+                <canvas id="trim-waveform" style="width: 100%; height: 75px; background: #ffffff; border-radius: 8px; border: 1px solid #ffccd5; margin-top: 4px; margin-bottom: 6px; cursor: pointer;"></canvas>
+
+                <div style="font-size: 0.78em; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                    <input type="checkbox" id="batch-apply-chk">
+                    <label for="batch-apply-chk" style="cursor:pointer; color:#d63031; font-weight:bold;">🔗 登録済みの全音素にまとめて一括適用する</label>
+                </div>
+                
+                <div class="param-row" style="margin-top: 4px;">
+                    <label style="width:110px; font-size:0.8em;" ondblclick="resetTrimParam('offset')">開始位置 (Offset)</label>
+                    <input type="range" id="trim-offset" min="0" max="1" step="0.01" value="0.20" oninput="updateTrimParams()" ondblclick="resetTrimParam('offset')" disabled>
+                    <span class="param-val" id="val-trim-offset" style="font-size:0.8em;" ondblclick="resetTrimParam('offset')">0.20s</span>
+                </div>
+                <div class="param-row" style="margin-top: 2px;">
+                    <label style="width:110px; font-size:0.8em;" ondblclick="resetTrimParam('duration')">切り抜き長さ</label>
+                    <input type="range" id="trim-duration" min="0.05" max="1.5" step="0.01" value="0.60" oninput="updateTrimParams()" ondblclick="resetTrimParam('duration')" disabled>
+                    <span class="param-val" id="val-trim-duration" style="font-size:0.8em;" ondblclick="resetTrimParam('duration')">0.60s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右パネル：喋らせる＆調整 -->
+        <div class="card">
+            <h2 class="card-title">💬 おしゃべりメーカー</h2>
+
+            <textarea id="talk-text" placeholder="ここに喋らせたい文章を入力してください。句読点（、。）やスペースで間が空きます！" oninput="syncIntonationNodes()">こんにちわ</textarea>
+
+            <!-- イントネーション波形グラフ -->
+            <div style="margin: 8px 0;">
+                <div style="display:flex; justify-space:space-between; align-items:center; font-size:0.8em; font-weight:bold; color:#555; margin-bottom:4px;">
+                    <span>📈 イントネーション波形 (ドラッグで高さ / 💡Wクリックで初期化)</span>
+                    <button class="btn-util" onclick="resetIntonationGraph()" style="font-size:0.7em; padding:2px 6px;">リセット</button>
+                </div>
+                <canvas id="intonation-canvas" style="width:100%; height:95px; background:#ffffff; border-radius:10px; border:1px solid #ffe0e6; cursor:pointer;"></canvas>
+            </div>
+
+            <!-- 声の微調整エリア -->
+            <div class="param-group">
+                <div style="font-weight: bold; color: #777; font-size: 0.8em; margin-bottom: 2px;">🎛️ 音声パラメータ <span style="font-size:0.75em; font-weight:normal; color:#999;">(項目ダブルクリックで初期化)</span></div>
+                
+                <div class="param-row">
+                    <label ondblclick="resetParam('param-base-freq', 350)">基準音程 (Hz)</label>
+                    <input type="range" id="param-base-freq" min="200" max="500" step="5" value="350" oninput="updateParamDisp()" ondblclick="resetParam('param-base-freq', 350)">
+                    <span class="param-val" id="val-base-freq" ondblclick="resetParam('param-base-freq', 350)">350Hz</span>
+                </div>
+
+                <div class="param-row">
+                    <label ondblclick="resetParam('param-pitch', 0)">基本ピッチ (Shift)</label>
+                    <input type="range" id="param-pitch" min="-12" max="12" step="1" value="0" oninput="updateParamDisp()" ondblclick="resetParam('param-pitch', 0)">
+                    <span class="param-val" id="val-pitch" ondblclick="resetParam('param-pitch', 0)">0</span>
+                </div>
+
+                <div class="param-row">
+                    <label ondblclick="resetParam('param-speed', 0.20)">喋るスピード</label>
+                    <input type="range" id="param-speed" min="0.1" max="0.5" step="0.02" value="0.20" oninput="updateParamDisp()" ondblclick="resetParam('param-speed', 0.20)">
+                    <span class="param-val" id="val-speed" ondblclick="resetParam('param-speed', 0.20)">0.20s</span>
+                </div>
+
+                <div class="param-row">
+                    <label ondblclick="resetParam('param-tone', 0)">声質（トーン）</label>
+                    <input type="range" id="param-tone" min="-10" max="10" step="1" value="0" oninput="updateParamDisp()" ondblclick="resetParam('param-tone', 0)">
+                    <span class="param-val" id="val-tone" ondblclick="resetParam('param-tone', 0)">0</span>
+                </div>
+
+                <div class="param-row">
+                    <label ondblclick="resetParam('param-intonation', 0)">抑揚（自動カーブ）</label>
+                    <input type="range" id="param-intonation" min="0" max="10" step="1" value="0" oninput="updateParamDisp(); resetIntonationGraph();" ondblclick="resetParam('param-intonation', 0)">
+                    <span class="param-val" id="val-intonation" ondblclick="resetParam('param-intonation', 0)">0</span>
+                </div>
+
+                <div class="param-row">
+                    <label ondblclick="resetParam('param-volume', 1.0)">音量</label>
+                    <input type="range" id="param-volume" min="0.1" max="1.5" step="0.1" value="1.0" oninput="updateParamDisp()" ondblclick="resetParam('param-volume', 1.0)">
+                    <span class="param-val" id="val-volume" ondblclick="resetParam('param-volume', 1.0)">1.0</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-main btn-talk" onclick="speakText()">▶ 喋らせる</button>
+                <button class="btn-main btn-save-wav" onclick="exportWav()">💾 WAV保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ハンズフリー連続録音用モーダル -->
+    <div class="modal-overlay" id="recording-modal" style="display:none;">
+        <div class="modal-box">
+            <h3 style="margin:0; color:#555; font-size:1.05em;">🚀 連続録音ガイド</h3>
+            <p style="font-size:0.8em; color:#888; margin:4px 0;" id="modal-sub-info">声を出してください！自動で次へ進みます</p>
+            
+            <div class="modal-char" id="modal-char-disp">あ</div>
+            <div id="modal-status" style="font-weight:bold; color:var(--primary); font-size:0.9em;">準備中...</div>
+            
+            <div class="modal-controls">
+                <button class="btn-util" id="btn-pause-rec" onclick="togglePauseContinuous()">⏸️ 一時停止</button>
+                <button class="btn-util" onclick="prevContinuousStep()">⏮️ 1つ戻る</button>
+                <button class="btn-util" onclick="restartContinuousRecording()">🔄 最初から</button>
+                <button class="btn-util" style="color:#e74c3c; border-color:#ff7875;" onclick="stopContinuousRecording()">❌ 終了</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const phonemeCategories = {
+            "あ〜さ行": ["あ","い","う","え","お", "か","き","く","け","こ", "さ","し","す","せ","そ"],
+            "た〜ま行": ["た","ち","つ","て","と", "な","に","ぬ","ね","の", "は","ひ","ふ","へ","ほ", "ま","み","む","め","も"],
+            "や〜ん": ["や","ゆ","よ", "ら","り","る","れ","ろ", "わ","を","ん"],
+            "濁音・半濁音": ["が","ぎ","ぐ","げ","ご", "ざ","じ","ず","ぜ","ぞ", "だ","ぢ","づ","で","ど", "ば","び","ぶ","べ","ぼ", "ぱ","ぴ","ぷ","ぺ","ぽ"],
+            "拗音(しゃ等)": [
+                "きゃ","きゅ","きょ", "ぎゃ","ぎゅ","ぎょ",
+                "しゃ","しゅ","しょ", "じゃ","じゅ","じょ",
+                "ちゃ","ちゅ","ちょ",
+                "にゃ","にゅ","にょ",
+                "ひゃ","ひゅ","ひょ", "びゃ","びゅ","びょ", "ぴゃ","ぴゅ","ぴょ",
+                "みゃ","みゅ","みょ",
+                "りゃ","りゅ","りょ"
+            ]
+        };
+
+        const allPhonemesList = Object.values(phonemeCategories).flat();
+        const allYouon = Object.values(phonemeCategories["拗音(しゃ等)"]);
+
+        let audioCtx;
+        let micStream;
+        let voiceLibrary = {}; 
+        let currentTab = "あ〜さ行";
+        let selectedChar = null;
+        let intonationNodes = [];
+        let intonationGraphScale = 1.0;
+
+        async function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+        }
+
+        async function initMic() {
+            if (!micStream) {
+                micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            }
+        }
+
+        /* --- パラメータリセット（ダブルクリック） --- */
+        function resetParam(elementId, defaultValue) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.value = defaultValue;
+                updateParamDisp();
+            }
+        }
+
+        function resetTrimParam(type) {
+            const offInput = document.getElementById("trim-offset");
+            const durInput = document.getElementById("trim-duration");
+            if (type === 'offset') {
+                offInput.value = 0.20;
+            } else if (type === 'duration') {
+                durInput.value = 0.60;
+            }
+            updateTrimParams();
+        }
+
+        /* --- ピッチ自動解析 --- */
+        function detectFundamentalFreq(buffer) {
+            const data = buffer.getChannelData(0);
+            const sampleRate = buffer.sampleRate;
+
+            const startSample = Math.floor(data.length * 0.15);
+            const endSample = Math.floor(data.length * 0.75);
+            if (endSample - startSample < 512) return 350;
+
+            const slice = data.subarray(startSample, endSample);
+            const minPeriod = Math.floor(sampleRate / 700);
+            const maxPeriod = Math.floor(sampleRate / 80);
+
+            let maxCorr = 0;
+            let bestPeriod = 0;
+
+            for (let period = minPeriod; period <= maxPeriod; period++) {
+                let corr = 0;
+                for (let i = 0; i < slice.length - period; i += 2) {
+                    corr += slice[i] * slice[i + period];
+                }
+                if (corr > maxCorr) {
+                    maxCorr = corr;
+                    bestPeriod = period;
+                }
+            }
+
+            if (bestPeriod > 0) {
+                const freq = sampleRate / bestPeriod;
+                if (freq >= 80 && freq <= 700) return freq;
+            }
+            return 350;
+        }
+
+        function renderUI() {
+            const tabContainer = document.getElementById("tab-container");
+            tabContainer.innerHTML = "";
+
+            Object.keys(phonemeCategories).forEach(cat => {
+                const btn = document.createElement("button");
+                btn.className = `tab-btn ${cat === currentTab ? 'active' : ''}`;
+                btn.textContent = cat;
+                btn.onclick = () => {
+                    currentTab = cat;
+                    renderUI();
+                };
+                tabContainer.appendChild(btn);
+            });
+
+            const grid = document.getElementById("char-grid");
+            grid.innerHTML = "";
+            const chars = phonemeCategories[currentTab];
+
+            chars.forEach(char => {
+                const item = voiceLibrary[char];
+                const isRecorded = !!item;
+                const isSelected = selectedChar === char;
+
+                const card = document.createElement("div");
+                card.className = `char-card ${isRecorded ? 'recorded' : ''} ${isSelected ? 'selected' : ''}`;
+                card.id = `card-${char}`;
+                card.innerHTML = `
+                    <div class="char-name">${char}</div>
+                    <button id="rec-${char}" class="btn-mini btn-rec" onclick="record('${char}')">録音</button>
+                    <button id="play-${char}" class="btn-mini btn-play" onclick="playTrimmedChar('${char}')" ${isRecorded ? '' : 'disabled'}>▶</button>
+                    <button id="trim-${char}" class="btn-mini btn-trim" onclick="selectForTrim('${char}')" ${isRecorded ? '' : 'disabled'}>⚙️</button>
+                `;
+                grid.appendChild(card);
+            });
+
+            updateTrimPanelUI();
+        }
+
+        function updateParamDisp() {
+            document.getElementById("val-base-freq").textContent = document.getElementById("param-base-freq").value + "Hz";
+            document.getElementById("val-pitch").textContent = document.getElementById("param-pitch").value;
+            document.getElementById("val-speed").textContent = document.getElementById("param-speed").value + "s";
+            document.getElementById("val-tone").textContent = document.getElementById("param-tone").value;
+            document.getElementById("val-intonation").textContent = document.getElementById("param-intonation").value;
+            document.getElementById("val-volume").textContent = document.getElementById("param-volume").value;
+        }
+
+        async function record(char) {
+            await initAudio();
+            await initMic();
+
+            const recBtn = document.getElementById(`rec-${char}`);
+            if (recBtn && recBtn.disabled) return;
+
+            const mediaRecorder = new MediaRecorder(micStream);
+            const chunks = [];
+
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(chunks);
+                const buffer = await blob.arrayBuffer();
+                const audioBuffer = await audioCtx.decodeAudioData(buffer);
+                
+                const detectedPitch = detectFundamentalFreq(audioBuffer);
+                const initialOffset = Math.min(0.20, audioBuffer.duration * 0.2);
+                const initialDuration = Math.min(0.60, Math.max(0.1, audioBuffer.duration - initialOffset));
+
+                voiceLibrary[char] = {
+                    buffer: audioBuffer,
+                    offset: parseFloat(initialOffset.toFixed(2)),
+                    duration: parseFloat(initialDuration.toFixed(2)),
+                    detectedPitch: detectedPitch
+                };
+
+                if (recBtn) {
+                    recBtn.textContent = "録音";
+                    recBtn.classList.remove("recording");
+                    recBtn.disabled = false;
+                }
+                selectForTrim(char);
+                renderUI();
+                saveToLocalStorage(true);
+            };
+
+            mediaRecorder.start();
+            if (recBtn) {
+                recBtn.textContent = "録音中";
+                recBtn.classList.add("recording");
+                recBtn.disabled = true;
+            }
+
+            setTimeout(() => {
+                if (mediaRecorder.state === "recording") mediaRecorder.stop();
+            }, 1200);
+        }
+
+        function clearAllRecordings() {
+            if (confirm("すべての録音データを消去してリセットしますか？")) {
+                voiceLibrary = {};
+                selectedChar = null;
+                localStorage.removeItem("puchivoice_saved_library");
+                renderUI();
+            }
+        }
+
+        async function generateDefaultVoice() {
+            await initAudio();
+            const targetFreq = parseFloat(document.getElementById("param-base-freq").value);
+            
+            allPhonemesList.forEach(char => {
+                const sampleRate = audioCtx.sampleRate;
+                const duration = 0.8;
+                const buffer = audioCtx.createBuffer(1, sampleRate * duration, sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    const t = i / sampleRate;
+                    const env = Math.exp(-t * 3);
+                    data[i] = (Math.sin(2 * Math.PI * targetFreq * t) + 0.3 * Math.sin(2 * Math.PI * targetFreq * 2 * t)) * env * 0.3;
+                }
+
+                voiceLibrary[char] = {
+                    buffer: buffer,
+                    offset: 0.20,
+                    duration: 0.50,
+                    detectedPitch: targetFreq
+                };
+            });
+            renderUI();
+            saveToLocalStorage(true);
+            alert("✨ おまかせ合成声データを全自動生成しました！");
+        }
+
+        function fillVowelsOnly() {
+            const vowels = ["あ","い","う","え","お"];
+            const recordedVowels = vowels.filter(v => voiceLibrary[v]);
+            if (recordedVowels.length === 0) {
+                return alert("まずは「あ・い・う・え・お」のうち1つ以上を録音してください！");
+            }
+
+            allPhonemesList.forEach(char => {
+                if (!voiceLibrary[char]) {
+                    let refVowel = "あ";
+                    if (char.endsWith("い") || char.includes("き") || char.includes("し") || char.includes("ち") || char.includes("に") || char.includes("ひ") || char.includes("み") || char.includes("り")) refVowel = "い";
+                    else if (char.endsWith("う") || char.includes("く") || char.includes("す") || char.includes("つ") || char.includes("ぬ") || char.includes("ふ") || char.includes("む") || char.includes("ゆ") || char.includes("る")) refVowel = "う";
+                    else if (char.endsWith("え") || char.includes("け") || char.includes("せ") || char.includes("て") || char.includes("ね") || char.includes("へ") || char.includes("め") || char.includes("れ")) refVowel = "え";
+                    else if (char.endsWith("お") || char.includes("こ") || char.includes("そ") || char.includes("と") || char.includes("の") || char.includes("ほ") || char.includes("も") || char.includes("よ") || char.includes("ろ")) refVowel = "お";
+
+                    const srcItem = voiceLibrary[refVowel] || voiceLibrary[recordedVowels[0]];
+                    voiceLibrary[char] = { ...srcItem };
+                }
+            });
+            renderUI();
+            saveToLocalStorage(true);
+            alert("⚡ 母音を使って全音素を自動補完しました！");
+        }
+
+        let isContinuousRunning = false;
+        let isContinuousPaused = false;
+        let continuousIndex = 0;
+        let continuousTargets = [];
+
+        async function startContinuousRecording() {
+            await initAudio();
+            await initMic();
+            isContinuousRunning = true;
+            isContinuousPaused = false;
+            continuousIndex = 0;
+            continuousTargets = phonemeCategories[currentTab];
+            
+            document.getElementById("recording-modal").style.display = "flex";
+            updatePauseButtonUI();
+            runContinuousLoop();
+        }
+
+        async function runContinuousLoop() {
+            while (isContinuousRunning && continuousIndex < continuousTargets.length) {
+                if (isContinuousPaused) {
+                    await new Promise(r => setTimeout(r, 200));
+                    continue;
+                }
+
+                const char = continuousTargets[continuousIndex];
+                document.getElementById("modal-char-disp").textContent = char;
+                document.getElementById("modal-sub-info").textContent = `進捗: ${continuousIndex + 1} / ${continuousTargets.length}`;
+                document.getElementById("modal-status").textContent = "準備... 声を出して！";
+                
+                await new Promise(r => setTimeout(r, 500));
+                if (!isContinuousRunning || isContinuousPaused) continue;
+
+                document.getElementById("modal-status").textContent = "🎙️ 録音中...";
+                await record(char);
+                await new Promise(r => setTimeout(r, 1200));
+
+                if (!isContinuousPaused) {
+                    continuousIndex++;
+                }
+            }
+
+            if (continuousIndex >= continuousTargets.length && isContinuousRunning) {
+                alert("🎉 このタブの連続録音が完了しました！");
+                stopContinuousRecording();
+            }
+        }
+
+        function togglePauseContinuous() {
+            isContinuousPaused = !isContinuousPaused;
+            updatePauseButtonUI();
+            const statusNode = document.getElementById("modal-status");
+            if (isContinuousPaused) {
+                statusNode.textContent = "⏸️ 一時停止中（ボタンで再開）";
+            }
+        }
+
+        function updatePauseButtonUI() {
+            const btn = document.getElementById("btn-pause-rec");
+            if (isContinuousPaused) {
+                btn.textContent = "▶️ 再開する";
+                btn.style.borderColor = "var(--primary)";
+            } else {
+                btn.textContent = "⏸️ 一時停止";
+                btn.style.borderColor = "#ccc";
+            }
+        }
+
+        function prevContinuousStep() {
+            if (continuousIndex > 0) {
+                continuousIndex--;
+                document.getElementById("modal-char-disp").textContent = continuousTargets[continuousIndex];
+                document.getElementById("modal-status").textContent = "前のに戻りました";
+            }
+        }
+
+        function restartContinuousRecording() {
+            continuousIndex = 0;
+            isContinuousPaused = false;
+            updatePauseButtonUI();
+            document.getElementById("modal-status").textContent = "最初からやり直します";
+        }
+
+        function stopContinuousRecording() {
+            isContinuousRunning = false;
+            isContinuousPaused = false;
+            document.getElementById("recording-modal").style.display = "none";
+        }
+
+        function selectForTrim(char) {
+            if (!voiceLibrary[char]) return;
+            selectedChar = char;
+            renderUI();
+            drawTrimWaveform();
+        }
+
+        function updateTrimPanelUI() {
+            const title = document.getElementById("trim-char-title");
+            const offInput = document.getElementById("trim-offset");
+            const durInput = document.getElementById("trim-duration");
+            const btnPrev = document.getElementById("btn-preview-trim");
+
+            if (selectedChar && voiceLibrary[selectedChar]) {
+                const item = voiceLibrary[selectedChar];
+                title.textContent = `✂️ 「${selectedChar}」の微調整`;
+                
+                offInput.disabled = false;
+                durInput.disabled = false;
+                btnPrev.disabled = false;
+
+                const maxDur = item.buffer.duration;
+                offInput.max = (maxDur - 0.05).toFixed(2);
+                offInput.value = item.offset;
+                
+                durInput.max = maxDur.toFixed(2);
+                durInput.value = item.duration;
+
+                document.getElementById("val-trim-offset").textContent = Number(item.offset).toFixed(2) + "s";
+                document.getElementById("val-trim-duration").textContent = Number(item.duration).toFixed(2) + "s";
+            } else {
+                title.textContent = `✂️ 音素の調整（未選択）`;
+                offInput.disabled = true;
+                durInput.disabled = true;
+                btnPrev.disabled = true;
+                document.getElementById("val-trim-offset").textContent = "0.20s";
+                document.getElementById("val-trim-duration").textContent = "0.60s";
+            }
+            drawTrimWaveform();
+        }
+
+        function updateTrimParams() {
+            const offVal = parseFloat(document.getElementById("trim-offset").value);
+            const durVal = parseFloat(document.getElementById("trim-duration").value);
+            const isBatch = document.getElementById("batch-apply-chk").checked;
+
+            document.getElementById("val-trim-offset").textContent = offVal.toFixed(2) + "s";
+            document.getElementById("val-trim-duration").textContent = durVal.toFixed(2) + "s";
+
+            if (isBatch) {
+                for (const char in voiceLibrary) {
+                    if (voiceLibrary[char]) {
+                        voiceLibrary[char].offset = offVal;
+                        voiceLibrary[char].duration = durVal;
+                    }
+                }
+            } else if (selectedChar && voiceLibrary[selectedChar]) {
+                voiceLibrary[selectedChar].offset = offVal;
+                voiceLibrary[selectedChar].duration = durVal;
+            }
+            saveToLocalStorage(true);
+            drawTrimWaveform();
+        }
+
+        function playTrimmedSelected() {
+            if (selectedChar) playTrimmedChar(selectedChar);
+        }
+
+        function playTrimmedChar(char) {
+            initAudio();
+            const item = voiceLibrary[char];
+            if (!item) return;
+
+            const targetFreq = parseFloat(document.getElementById("param-base-freq").value);
+            const normRatio = item.detectedPitch ? (targetFreq / item.detectedPitch) : 1.0;
+
+            const trimmedBuffer = getTrimmedBuffer(audioCtx, item.buffer, item.offset, item.duration);
+            const src = audioCtx.createBufferSource();
+            src.buffer = trimmedBuffer;
+            src.playbackRate.value = normRatio;
+            src.connect(audioCtx.destination);
+            src.start();
+        }
+
+        function getTrimmedBuffer(ctx, origBuffer, offset, duration) {
+            const sr = origBuffer.sampleRate;
+            const startSample = Math.floor(offset * sr);
+            const lengthSamples = Math.floor(duration * sr);
+            const actualLength = Math.max(1, Math.min(lengthSamples, origBuffer.length - startSample));
+
+            const newBuf = ctx.createBuffer(origBuffer.numberOfChannels, actualLength, sr);
+            for (let ch = 0; ch < origBuffer.numberOfChannels; ch++) {
+                const srcData = origBuffer.getChannelData(ch);
+                const destData = newBuf.getChannelData(ch);
+                destData.set(srcData.subarray(startSample, startSample + actualLength));
+            }
+            return newBuf;
+        }
+
+        /* --- 波形描画 & ドラッグ操作 --- */
+        let isDraggingWaveform = false;
+        let dragTarget = null;
+
+        function drawTrimWaveform() {
+            const canvas = document.getElementById("trim-waveform");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * (window.devicePixelRatio || 1);
+            canvas.height = rect.height * (window.devicePixelRatio || 1);
+            ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+
+            const w = rect.width;
+            const h = rect.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (!selectedChar || !voiceLibrary[selectedChar]) {
+                ctx.fillStyle = "#aaa";
+                ctx.font = "12px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("音素を選択すると波形が表示されます", w / 2, h / 2 + 4);
+                return;
+            }
+
+            const item = voiceLibrary[selectedChar];
+            const buffer = item.buffer;
+            const data = buffer.getChannelData(0);
+            const totalDuration = buffer.duration;
+
+            // 波形の描画
+            ctx.fillStyle = "#ffb8c6";
+            const step = Math.ceil(data.length / w);
+            const amp = h / 2;
+
+            for (let i = 0; i < w; i++) {
+                let min = 1.0;
+                let max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    const datum = data[(i * step) + j];
+                    if (datum < min) min = datum;
+                    if (datum > max) max = datum;
+                }
+                ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
+            }
+
+            // 選択エリアの背景ハイライト
+            const startX = (item.offset / totalDuration) * w;
+            const endX = Math.min(w, ((item.offset + item.duration) / totalDuration) * w);
+
+            ctx.fillStyle = "rgba(112, 161, 255, 0.25)";
+            ctx.fillRect(startX, 0, endX - startX, h);
+
+            // 開始位置ライン
+            ctx.strokeStyle = "#a55eea";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX, 0); ctx.lineTo(startX, h);
+            ctx.stroke();
+
+            // 終了位置ライン
+            ctx.strokeStyle = "#ff4757";
+            ctx.beginPath();
+            ctx.moveTo(endX, 0); ctx.lineTo(endX, h);
+            ctx.stroke();
+
+            // ラベル表示
+            ctx.fillStyle = "#a55eea";
+            ctx.font = "bold 10px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText("開始", Math.min(startX + 3, w - 28), 12);
+
+            ctx.fillStyle = "#ff4757";
+            ctx.textAlign = "right";
+            ctx.fillText("終了", Math.max(25, endX - 3), 12);
+        }
+
+        function setupWaveformEvents() {
+            const canvas = document.getElementById("trim-waveform");
+            if (!canvas) return;
+
+            const handlePointer = (e) => {
+                if (!selectedChar || !voiceLibrary[selectedChar]) return;
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+                const ratio = x / rect.width;
+                const item = voiceLibrary[selectedChar];
+                const totalDur = item.buffer.duration;
+                const targetTime = ratio * totalDur;
+
+                const startX = (item.offset / totalDur) * rect.width;
+                const endX = ((item.offset + item.duration) / totalDur) * rect.width;
+
+                if (e.type === 'mousedown' || e.type === 'touchstart') {
+                    isDraggingWaveform = true;
+                    if (Math.abs(x - startX) < 20) dragTarget = 'start';
+                    else if (Math.abs(x - endX) < 20) dragTarget = 'end';
+                    else if (x < startX) dragTarget = 'start';
+                    else dragTarget = 'end';
+                }
+
+                if (isDraggingWaveform) {
+                    if (dragTarget === 'start') {
+                        const newOffset = Math.min(targetTime, totalDur - 0.05);
+                        const currentEnd = item.offset + item.duration;
+                        item.offset = parseFloat(newOffset.toFixed(2));
+                        if (currentEnd > item.offset) {
+                            item.duration = parseFloat((currentEnd - item.offset).toFixed(2));
+                        } else {
+                            item.duration = 0.05;
+                        }
+                    } else if (dragTarget === 'end') {
+                        const newEnd = Math.max(targetTime, item.offset + 0.05);
+                        item.duration = parseFloat((Math.min(totalDur, newEnd) - item.offset).toFixed(2));
+                    }
+                    updateTrimPanelUI();
+                    updateTrimParams();
+                }
+            };
+
+            const stopDrag = () => { isDraggingWaveform = false; dragTarget = null; };
+
+            canvas.addEventListener('mousedown', (e) => handlePointer(e));
+            canvas.addEventListener('mousemove', (e) => { if (isDraggingWaveform) handlePointer(e); });
+            window.addEventListener('mouseup', stopDrag);
+
+            canvas.addEventListener('touchstart', (e) => handlePointer(e), { passive: true });
+            canvas.addEventListener('touchmove', (e) => { if (isDraggingWaveform) handlePointer(e); }, { passive: true });
+            window.addEventListener('touchend', stopDrag);
+        }
+
+        /* --- イントネーション波形グラフ機能 --- */
+        function parseVoicedTokens(text) {
+            const tokens = parseText(text);
+            return tokens.filter(c => ![" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ"].includes(c));
+        }
+
+        function syncIntonationNodes() {
+            const text = document.getElementById("talk-text").value;
+            const tokens = parseVoicedTokens(text);
+
+            if (tokens.length === 0) {
+                intonationNodes = [];
+            } else {
+                const autoInton = parseFloat(document.getElementById("param-intonation").value) || 0;
+                const newNodes = [];
+                for (let i = 0; i < tokens.length; i++) {
+                    if (intonationNodes[i] !== undefined && intonationNodes.length === tokens.length) {
+                        newNodes.push(intonationNodes[i]);
+                    } else {
+                        const progress = tokens.length > 1 ? i / (tokens.length - 1) : 0.5;
+                        newNodes.push(parseFloat((Math.sin(progress * Math.PI) * (autoInton * 0.4)).toFixed(1)));
+                    }
+                }
+                intonationNodes = newNodes;
+            }
+            drawIntonationGraph();
+        }
+
+        function resetIntonationGraph() {
+            const text = document.getElementById("talk-text").value;
+            const tokens = parseVoicedTokens(text);
+            const autoInton = parseFloat(document.getElementById("param-intonation").value) || 0;
+            intonationNodes = tokens.map((_, i) => {
+                const progress = tokens.length > 1 ? i / (tokens.length - 1) : 0.5;
+                return parseFloat((Math.sin(progress * Math.PI) * (autoInton * 0.4)).toFixed(1));
+            });
+            drawIntonationGraph();
+        }
+
+        function drawIntonationGraph() {
+            const canvas = document.getElementById("intonation-canvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * (window.devicePixelRatio || 1);
+            canvas.height = rect.height * (window.devicePixelRatio || 1);
+            ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+
+            const w = rect.width;
+            const h = rect.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const text = document.getElementById("talk-text").value;
+            const tokens = parseVoicedTokens(text);
+
+            if (tokens.length === 0) {
+                ctx.fillStyle = "#aaa";
+                ctx.font = "12px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("文章を入力するとイントネーション波形が表示されます", w / 2, h / 2 + 4);
+                return;
+            }
+
+            const centerY = h / 2;
+            ctx.strokeStyle = "#ffe0e6";
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(w, centerY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const points = [];
+            const padding = 25;
+            const availableW = w - padding * 2;
+            const maxRange = 8;
+
+            for (let i = 0; i < tokens.length; i++) {
+                const px = tokens.length === 1 ? w / 2 : padding + (i / (tokens.length - 1)) * availableW;
+                const pitchVal = intonationNodes[i] || 0;
+                const py = centerY - ((pitchVal / maxRange) * (h / 2 - 18) * intonationGraphScale);
+                points.push({ x: px, y: py, char: tokens[i], val: pitchVal });
+            }
+
+            // カーブ接続線の描画
+            ctx.strokeStyle = "#ff758c";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            if (points.length === 1) {
+                ctx.moveTo(0, points[0].y);
+                ctx.lineTo(w, points[0].y);
+            } else {
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 0; i < points.length - 1; i++) {
+                    const xc = (points[i].x + points[i + 1].x) / 2;
+                    const yc = (points[i].y + points[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+                }
+                ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+            }
+            ctx.stroke();
+
+            // ノードと文字の描画
+            points.forEach((p) => {
+                ctx.fillStyle = "#ff758c";
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = "#4a4a4a";
+                ctx.font = "bold 11px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(p.char, p.x, p.y < centerY ? p.y - 10 : p.y + 18);
+            });
+        }
+
+        let activeNodeIdx = -1;
+
+        function setupIntonationEvents() {
+            const canvas = document.getElementById("intonation-canvas");
+            if (!canvas) return;
+
+            const handlePointer = (e) => {
+                const text = document.getElementById("talk-text").value;
+                const tokens = parseVoicedTokens(text);
+                if (tokens.length === 0) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const w = rect.width;
+                const h = rect.height;
+                const centerY = h / 2;
+                const padding = 25;
+                const availableW = w - padding * 2;
+                const maxRange = 8;
+
+                if (e.type === 'mousedown' || e.type === 'touchstart') {
+                    let minDist = Infinity;
+                    let closest = -1;
+                    for (let i = 0; i < tokens.length; i++) {
+                        const px = tokens.length === 1 ? w / 2 : padding + (i / (tokens.length - 1)) * availableW;
+                        const dist = Math.abs(x - px);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closest = i;
+                        }
+                    }
+                    if (minDist < 35) activeNodeIdx = closest;
+                }
+
+                if (activeNodeIdx !== -1 && activeNodeIdx < tokens.length) {
+                    const deltaY = centerY - y;
+                    let pitchVal = (deltaY / ((h / 2 - 18) * intonationGraphScale)) * maxRange;
+                    pitchVal = Math.max(-8, Math.min(8, pitchVal));
+                    intonationNodes[activeNodeIdx] = parseFloat(pitchVal.toFixed(1));
+                    drawIntonationGraph();
+                }
+            };
+
+            const stopDrag = () => { activeNodeIdx = -1; };
+
+            canvas.addEventListener('mousedown', handlePointer);
+            canvas.addEventListener('mousemove', (e) => { if (activeNodeIdx !== -1) handlePointer(e); });
+            window.addEventListener('mouseup', stopDrag);
+
+            canvas.addEventListener('touchstart', handlePointer, { passive: true });
+            canvas.addEventListener('touchmove', (e) => { if (activeNodeIdx !== -1) handlePointer(e); }, { passive: true });
+            window.addEventListener('touchend', stopDrag);
+
+            // ダブルクリックで初期設定（倍率1.0および自動カーブ状態）にリセット
+            canvas.addEventListener('dblclick', () => {
+                intonationGraphScale = 1.0;
+                resetIntonationGraph();
+            });
+        }
+
+        function parseText(text) {
+            const result = [];
+            let i = 0;
+            while (i < text.length) {
+                if (i < text.length - 1) {
+                    const two = text.substring(i, i + 2);
+                    if (allYouon.includes(two)) {
+                        result.push(two);
+                        i += 2;
+                        continue;
+                    }
+                }
+                result.push(text[i]);
+                i++;
+            }
+            return result;
+        }
+
+        function fallbackChar(c) {
+            const map = {
+                'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ',
+                'ざ':'さ','じ':'し','ず':'す','ぜ':'せ','ぞ':'そ',
+                'だ':'た','ぢ':'ち','づ':'つ','で':'て','ど':'と',
+                'ば':'は','び':'ひ','ぶ':'ふ','べ':'へ','ぼ':'ほ',
+                'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ',
+                'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お',
+                'ゃ':'や','ゅ':'ゆ','ょ':'よ'
+            };
+            return map[c] || 'あ';
+        }
+
+        function scheduleSpeechNode(ctx, destination, char, startTime, speechDuration, opts, index, total, customPitchShift = 0) {
+            let item = voiceLibrary[char];
+            if (!item) {
+                const alt = fallbackChar(char);
+                item = voiceLibrary[alt];
+            }
+            if (!item) return;
+
+            const trimmedBuf = getTrimmedBuffer(ctx, item.buffer, item.offset, item.duration);
+            const src = ctx.createBufferSource();
+            src.buffer = trimmedBuf;
+
+            const targetFreq = opts.baseFreq;
+            const normRatio = item.detectedPitch ? (targetFreq / item.detectedPitch) : 1.0;
+
+            let pitchShift = opts.pitch + customPitchShift;
+            
+            src.playbackRate.value = normRatio * Math.pow(2, pitchShift / 12);
+
+            let lastNode = src;
+            if (opts.tone !== 0) {
+                const filter = ctx.createBiquadFilter();
+                if (opts.tone > 0) {
+                    filter.type = "peaking";
+                    filter.frequency.value = 3200;
+                    filter.gain.value = opts.tone * 1.2;
+                } else {
+                    filter.type = "lowpass";
+                    filter.frequency.value = Math.max(500, 3500 + opts.tone * 250);
+                }
+                src.connect(filter);
+                lastNode = filter;
+            }
+
+            const gainNode = ctx.createGain();
+            const attack = 0.02;
+            const release = 0.04;
+            const vol = opts.volume;
+
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(vol, startTime + attack);
+            gainNode.gain.setValueAtTime(vol, startTime + Math.max(attack, speechDuration - release));
+            gainNode.gain.linearRampToValueAtTime(0, startTime + speechDuration);
+
+            lastNode.connect(gainNode);
+            gainNode.connect(destination);
+
+            src.start(startTime);
+            src.stop(startTime + speechDuration + release);
+        }
+
+        function getParams() {
+            return {
+                baseFreq: parseFloat(document.getElementById("param-base-freq").value),
+                pitch: parseFloat(document.getElementById("param-pitch").value),
+                speed: parseFloat(document.getElementById("param-speed").value),
+                tone: parseFloat(document.getElementById("param-tone").value),
+                intonation: parseFloat(document.getElementById("param-intonation").value),
+                volume: parseFloat(document.getElementById("param-volume").value)
+            };
+        }
+
+        async function speakText() {
+            await initAudio();
+            const text = document.getElementById("talk-text").value;
+            const tokens = parseText(text);
+            const opts = getParams();
+
+            let currentTime = audioCtx.currentTime + 0.05;
+            let voicedIndex = 0;
+
+            tokens.forEach((char, idx) => {
+                if (char === " " || char === " ") {
+                    currentTime += opts.speed * 1.0;
+                    return;
+                }
+                if (char === "、") {
+                    currentTime += opts.speed * 1.2;
+                    return;
+                }
+                if (char === "。" || char === "！" || char === "？") {
+                    currentTime += opts.speed * 2.2;
+                    return;
+                }
+                if (char === "\n") {
+                    currentTime += opts.speed * 2.0;
+                    return;
+                }
+                if (char === "っ" || char === "ッ") {
+                    currentTime += opts.speed * 0.6;
+                    return;
+                }
+
+                const customPitchShift = intonationNodes[voicedIndex] !== undefined ? intonationNodes[voicedIndex] : 0;
+                scheduleSpeechNode(audioCtx, audioCtx.destination, char, currentTime, opts.speed, opts, idx, tokens.length, customPitchShift);
+                currentTime += opts.speed;
+                voicedIndex++;
+            });
+        }
+
+        async function exportWav() {
+            const text = document.getElementById("talk-text").value;
+            const tokens = parseText(text);
+            if (tokens.length === 0) return alert("文章を入力してください。");
+
+            const opts = getParams();
+            const sampleRate = 44100;
+            
+            let totalDuration = 0.5;
+            tokens.forEach(char => {
+                if (char === " " || char === " ") totalDuration += opts.speed * 1.0;
+                else if (char === "、") totalDuration += opts.speed * 1.2;
+                else if (char === "。" || char === "！" || char === "？") totalDuration += opts.speed * 2.2;
+                else if (char === "\n") totalDuration += opts.speed * 2.0;
+                else if (char === "っ" || char === "ッ") totalDuration += opts.speed * 0.6;
+                else totalDuration += opts.speed;
+            });
+
+            const offlineCtx = new OfflineAudioContext(1, Math.ceil(sampleRate * totalDuration), sampleRate);
+            let currentTime = 0.05;
+            let voicedIndex = 0;
+
+            tokens.forEach((char, idx) => {
+                if (char === " " || char === " ") {
+                    currentTime += opts.speed * 1.0;
+                    return;
+                }
+                if (char === "、") {
+                    currentTime += opts.speed * 1.2;
+                    return;
+                }
+                if (char === "。" || char === "！" || char === "？") {
+                    currentTime += opts.speed * 2.2;
+                    return;
+                }
+                if (char === "\n") {
+                    currentTime += opts.speed * 2.0;
+                    return;
+                }
+                if (char === "っ" || char === "ッ") {
+                    currentTime += opts.speed * 0.6;
+                    return;
+                }
+
+                const customPitchShift = intonationNodes[voicedIndex] !== undefined ? intonationNodes[voicedIndex] : 0;
+                scheduleSpeechNode(offlineCtx, offlineCtx.destination, char, currentTime, opts.speed, opts, idx, tokens.length, customPitchShift);
+                currentTime += opts.speed;
+                voicedIndex++;
+            });
+
+            const renderedBuffer = await offlineCtx.startRendering();
+            const wavBlob = bufferToWavBlob(renderedBuffer);
+
+            const url = URL.createObjectURL(wavBlob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `voice_${Date.now()}.wav`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function bufferToWavBlob(buffer) {
+            const numChannels = 1;
+            const sampleRate = buffer.sampleRate;
+            const format = 1;
+            const bitDepth = 16;
+            const samples = buffer.getChannelData(0);
+
+            const bytesPerSample = bitDepth / 8;
+            const blockAlign = numChannels * bytesPerSample;
+            const dataByteCount = samples.length * bytesPerSample;
+            const headerByteCount = 44;
+
+            const arrayBuffer = new ArrayBuffer(headerByteCount + dataByteCount);
+            const view = new DataView(arrayBuffer);
+
+            const writeString = (offset, str) => {
+                for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataByteCount, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, format, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * blockAlign, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataByteCount, true);
+
+            let offset = 44;
+            for (let i = 0; i < samples.length; i++) {
+                const s = Math.max(-1, Math.min(1, samples[i]));
+                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                offset += 2;
+            }
+
+            return new Blob([arrayBuffer], { type: 'audio/wav' });
+        }
+
+        /* --- 自動内部保存 (LocalStorage) --- */
+        async function saveToLocalStorage(silent = false) {
+            const icon = document.getElementById("lib-icon").value || "🎙️";
+            const name = document.getElementById("lib-name").value || "マイボイス";
+            const saveObj = { icon: icon, name: name, samples: {} };
+
+            for (const char in voiceLibrary) {
+                if (voiceLibrary[char]) {
+                    const item = voiceLibrary[char];
+                    const blob = bufferToWavBlob(item.buffer);
+                    saveObj.samples[char] = {
+                        data: await blobToBase64(blob),
+                        offset: item.offset,
+                        duration: item.duration,
+                        detectedPitch: item.detectedPitch || 350
+                    };
+                }
+            }
+
+            try {
+                localStorage.setItem("puchivoice_saved_library", JSON.stringify(saveObj));
+            } catch (err) {}
+        }
+
+        async function loadFromLocalStorage() {
+            const saved = localStorage.getItem("puchivoice_saved_library");
+            if (!saved) return false;
+
+            try {
+                const data = JSON.parse(saved);
+                if (data.icon) document.getElementById("lib-icon").value = data.icon;
+                if (data.name) document.getElementById("lib-name").value = data.name;
+
+                await initAudio();
+                voiceLibrary = {};
+                selectedChar = null;
+
+                for (const char in data.samples) {
+                    const sampleInfo = data.samples[char];
+                    const base64 = sampleInfo.data;
+                    const offset = sampleInfo.offset !== undefined ? sampleInfo.offset : 0.20;
+                    const duration = sampleInfo.duration || 0.60;
+                    const detectedPitch = sampleInfo.detectedPitch || 350;
+
+                    const res = await fetch(base64);
+                    const ab = await res.arrayBuffer();
+                    const audioBuffer = await audioCtx.decodeAudioData(ab);
+
+                    voiceLibrary[char] = {
+                        buffer: audioBuffer,
+                        offset: offset,
+                        duration: duration,
+                        detectedPitch: detectedPitch
+                    };
+                }
+                renderUI();
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function exportLibrary() {
+            const icon = document.getElementById("lib-icon").value || "🎙️";
+            const name = document.getElementById("lib-name").value || "マイボイス";
+            const exportData = { icon: icon, name: name, samples: {} };
+
+            for (const char in voiceLibrary) {
+                if (voiceLibrary[char]) {
+                    const item = voiceLibrary[char];
+                    const blob = bufferToWavBlob(item.buffer);
+                    exportData.samples[char] = {
+                        data: await blobToBase64(blob),
+                        offset: item.offset,
+                        duration: item.duration,
+                        detectedPitch: item.detectedPitch || 350
+                    };
+                }
+            }
+
+            const blob = new Blob([JSON.stringify(exportData)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${name}_voice_library.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function blobToBase64(blob) {
+            return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function importLibrary(fileInput) {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.icon) document.getElementById("lib-icon").value = data.icon;
+                    if (data.name) document.getElementById("lib-name").value = data.name;
+
+                    await initAudio();
+                    voiceLibrary = {};
+                    selectedChar = null;
+
+                    for (const char in data.samples) {
+                        const sampleInfo = data.samples[char];
+                        const base64 = typeof sampleInfo === "string" ? sampleInfo : sampleInfo.data;
+                        const offset = sampleInfo.offset !== undefined ? sampleInfo.offset : 0.20;
+                        const duration = sampleInfo.duration || 0.60;
+                        const detectedPitch = sampleInfo.detectedPitch || 350;
+
+                        const res = await fetch(base64);
+                        const ab = await res.arrayBuffer();
+                        const audioBuffer = await audioCtx.decodeAudioData(ab);
+
+                        voiceLibrary[char] = {
+                            buffer: audioBuffer,
+                            offset: offset,
+                            duration: duration,
+                            detectedPitch: detectedPitch
+                        };
+                    }
+
+                    renderUI();
+                    saveToLocalStorage(true);
+                    alert(`ボイスライブラリ「${data.name}」を読み込みました！`);
+                } catch (err) {
+                    alert("ファイルの読み込みに失敗しました。");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        window.onload = async () => {
+            renderUI();
+            updateParamDisp();
+            setupWaveformEvents();
+            setupIntonationEvents();
+            await loadFromLocalStorage();
+            syncIntonationNodes();
+        };
+
+        window.onresize = () => {
+            drawTrimWaveform();
+            drawIntonationGraph();
+        };
+    </script>
+</body>
+</html>
