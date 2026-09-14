@@ -287,6 +287,20 @@
         .param-row input[type="range"] { flex: 1; margin: 0 6px; min-width: 0; accent-color: var(--primary); cursor: pointer; height: 24px; }
         .param-val { width: 44px; text-align: right; color: var(--primary); font-weight: bold; flex-shrink: 0; cursor: pointer; }
 
+        .num-input-box {
+            width: 54px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-align: right;
+            border: 1.5px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--primary);
+            padding: 2px 4px;
+            outline: none;
+        }
+        .num-input-box:focus { border-color: var(--primary); }
+
         .action-buttons { display: flex; gap: 6px; margin-top: 6px; width: 100%; }
         .btn-main {
             flex: 1; padding: 10px; border: none; border-radius: 20px; font-size: 0.9em; font-weight: bold; cursor: pointer;
@@ -398,19 +412,25 @@
                 <canvas id="trim-waveform" style="height: 60px; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--border-color); margin-top: 4px; margin-bottom: 6px; cursor: pointer;"></canvas>
 
                 <div style="font-size: 0.72em; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                    <input type="checkbox" id="batch-apply-chk" style="width: 16px; height: 16px; accent-color: var(--primary);">
-                    <label for="batch-apply-chk" style="cursor:pointer; font-weight:bold;">🔗 登録済みに一括適用</label>
+                    <input type="checkbox" id="batch-apply-chk" onchange="updateTrimPanelUI()" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                    <label for="batch-apply-chk" style="cursor:pointer; font-weight:bold;">🔗 登録済みに一括適用（チェックで数値一括編集）</label>
                 </div>
                 
                 <div class="param-row" style="margin-top: 2px;">
-                    <label id="lbl-trim-offset" style="width:85px; font-size:0.72em;">開始位置</label>
-                    <input type="range" id="trim-offset" min="0" max="1" step="0.01" value="0.20" oninput="updateTrimParams()" disabled>
-                    <span class="param-val" id="val-trim-offset" style="font-size:0.72em;">0.20s</span>
+                    <label id="lbl-trim-offset" style="width:75px; font-size:0.72em;">開始位置</label>
+                    <input type="range" id="trim-offset" min="0" max="1" step="0.01" value="0.20" oninput="syncTrimInputs('offset', this.value)" disabled>
+                    <div style="display:flex; align-items:center; gap:2px;">
+                        <input type="number" id="num-trim-offset" min="0" max="2" step="0.01" value="0.20" onchange="syncTrimInputs('offset', this.value)" oninput="syncTrimInputs('offset', this.value)" class="num-input-box" disabled>
+                        <span style="font-size:0.72em;">s</span>
+                    </div>
                 </div>
                 <div class="param-row" style="margin-top: 2px;">
-                    <label id="lbl-trim-duration" style="width:85px; font-size:0.72em;">長さ</label>
-                    <input type="range" id="trim-duration" min="0.05" max="1.5" step="0.01" value="0.60" oninput="updateTrimParams()" disabled>
-                    <span class="param-val" id="val-trim-duration" style="font-size:0.72em;">0.60s</span>
+                    <label id="lbl-trim-end" style="width:75px; font-size:0.72em;">終了位置</label>
+                    <input type="range" id="trim-end" min="0.05" max="1.5" step="0.01" value="0.80" oninput="syncTrimInputs('end', this.value)" disabled>
+                    <div style="display:flex; align-items:center; gap:2px;">
+                        <input type="number" id="num-trim-end" min="0.05" max="3" step="0.01" value="0.80" onchange="syncTrimInputs('end', this.value)" oninput="syncTrimInputs('end', this.value)" class="num-input-box" disabled>
+                        <span style="font-size:0.72em;">s</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -465,12 +485,6 @@
                     <label id="lbl-tone">トーン</label>
                     <input type="range" id="param-tone" min="-10" max="10" step="1" value="0" oninput="updateParamFromUI()">
                     <span class="param-val" id="val-tone">0</span>
-                </div>
-
-                <div class="param-row">
-                    <label id="lbl-intonation">抑揚</label>
-                    <input type="range" id="param-intonation" min="0" max="10" step="1" value="0" oninput="updateParamFromUI(); resetIntonationGraph();">
-                    <span class="param-val" id="val-intonation">0</span>
                 </div>
 
                 <div class="param-row">
@@ -537,7 +551,7 @@
         let selectedChar = null;
 
         let sentences = [
-            { text: "あたらしいぶんしょう", nodes: [0, 0, 0, 0, 0, 0, 0, 0, 0], params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 } }
+            { text: "あたらしいぶんしょう", nodes: [0, 0, 0, 0, 0, 0, 0, 0, 0], params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, volume: 1.0 } }
         ];
         let currentSentenceIdx = 0;
         let currentSentenceData = sentences[0];
@@ -586,16 +600,12 @@
             if (el) {
                 el.value = defaultValue;
                 updateParamFromUI();
-                if (elementId === 'param-intonation') resetIntonationGraph();
             }
         }
 
         function resetTrimParam(type) {
-            const offInput = document.getElementById("trim-offset");
-            const durInput = document.getElementById("trim-duration");
-            if (type === 'offset') offInput.value = 0.20;
-            else if (type === 'duration') durInput.value = 0.60;
-            updateTrimParams();
+            if (type === 'offset') syncTrimInputs('offset', 0.20);
+            else if (type === 'end') syncTrimInputs('end', 0.80);
         }
 
         function setupAllResetHandlers() {
@@ -603,11 +613,10 @@
             bindDoubleTapReset([document.getElementById("lbl-speed"), document.getElementById("param-speed")], () => resetParam('param-speed', 0.20));
             bindDoubleTapReset([document.getElementById("lbl-smoothness"), document.getElementById("param-smoothness")], () => resetParam('param-smoothness', 20));
             bindDoubleTapReset([document.getElementById("lbl-tone"), document.getElementById("param-tone")], () => resetParam('param-tone', 0));
-            bindDoubleTapReset([document.getElementById("lbl-intonation"), document.getElementById("param-intonation")], () => resetParam('param-intonation', 0));
             bindDoubleTapReset([document.getElementById("lbl-volume"), document.getElementById("param-volume")], () => resetParam('param-volume', 1.0));
             
             bindDoubleTapReset([document.getElementById("lbl-trim-offset"), document.getElementById("trim-offset")], () => resetTrimParam('offset'));
-            bindDoubleTapReset([document.getElementById("lbl-trim-duration"), document.getElementById("trim-duration")], () => resetTrimParam('duration'));
+            bindDoubleTapReset([document.getElementById("lbl-trim-end"), document.getElementById("trim-end")], () => resetTrimParam('end'));
         }
 
         function renderUI() {
@@ -664,7 +673,7 @@
             sentences.push({
                 text: "あたらしいぶんしょう",
                 nodes: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 }
+                params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, volume: 1.0 }
             });
             switchSentenceSlot(sentences.length - 1);
         }
@@ -683,7 +692,6 @@
             document.getElementById("param-speed").value = p.speed;
             document.getElementById("param-smoothness").value = p.smoothness;
             document.getElementById("param-tone").value = p.tone;
-            document.getElementById("param-intonation").value = p.intonation;
             document.getElementById("param-volume").value = p.volume;
             updateParamDisp();
         }
@@ -694,7 +702,6 @@
                 speed: parseFloat(document.getElementById("param-speed").value),
                 smoothness: parseFloat(document.getElementById("param-smoothness").value),
                 tone: parseFloat(document.getElementById("param-tone").value),
-                intonation: parseFloat(document.getElementById("param-intonation").value),
                 volume: parseFloat(document.getElementById("param-volume").value)
             };
             updateParamDisp();
@@ -706,42 +713,44 @@
             document.getElementById("val-speed").textContent = p.speed + "s";
             document.getElementById("val-smoothness").textContent = p.smoothness + "%";
             document.getElementById("val-tone").textContent = p.tone;
-            document.getElementById("val-intonation").textContent = p.intonation;
             document.getElementById("val-volume").textContent = p.volume;
         }
 
-        async function record(char) {
-            await initAudio();
-            await initMic();
-            const recBtn = document.getElementById(`rec-${char}`);
-            if (recBtn && recBtn.disabled) return;
+        function record(char) {
+            return new Promise(async (resolve) => {
+                await initAudio();
+                await initMic();
+                const recBtn = document.getElementById(`rec-${char}`);
+                if (recBtn && recBtn.disabled) return resolve();
 
-            const mediaRecorder = new MediaRecorder(micStream);
-            const chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(chunks);
-                const buffer = await blob.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(buffer);
-                
-                const initialOffset = Math.min(0.20, audioBuffer.duration * 0.2);
-                const initialDuration = Math.min(0.60, Math.max(0.1, audioBuffer.duration - initialOffset));
+                const mediaRecorder = new MediaRecorder(micStream);
+                const chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(chunks);
+                    const buffer = await blob.arrayBuffer();
+                    const audioBuffer = await audioCtx.decodeAudioData(buffer);
+                    
+                    const initialOffset = Math.min(0.20, audioBuffer.duration * 0.2);
+                    const initialDuration = Math.min(0.60, Math.max(0.1, audioBuffer.duration - initialOffset));
 
-                voiceLibrary[char] = {
-                    buffer: audioBuffer,
-                    offset: parseFloat(initialOffset.toFixed(2)),
-                    duration: parseFloat(initialDuration.toFixed(2))
+                    voiceLibrary[char] = {
+                        buffer: audioBuffer,
+                        offset: parseFloat(initialOffset.toFixed(2)),
+                        duration: parseFloat(initialDuration.toFixed(2))
+                    };
+
+                    if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
+                    selectForTrim(char);
+                    renderUI();
+                    saveToLocalStorage(true);
+                    resolve();
                 };
 
-                if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
-                selectForTrim(char);
-                renderUI();
-                saveToLocalStorage(true);
-            };
-
-            mediaRecorder.start();
-            if (recBtn) { recBtn.textContent = "録音中"; recBtn.classList.add("recording"); recBtn.disabled = true; }
-            setTimeout(() => { if (mediaRecorder.state === "recording") mediaRecorder.stop(); }, 1200);
+                mediaRecorder.start();
+                if (recBtn) { recBtn.textContent = "録音中"; recBtn.classList.add("recording"); recBtn.disabled = true; }
+                setTimeout(() => { if (mediaRecorder.state === "recording") mediaRecorder.stop(); }, 1200);
+            });
         }
 
         function clearAllRecordings() {
@@ -775,13 +784,32 @@
                 const char = continuousTargets[continuousIndex];
                 document.getElementById("modal-char-disp").textContent = char;
                 document.getElementById("modal-sub-info").textContent = `進捗: ${continuousIndex + 1} / ${continuousTargets.length}`;
+                
+                // 1. 録音フェーズ (約1.2秒)
                 document.getElementById("modal-status").textContent = "🎙️ 録音中...";
+                document.getElementById("modal-status").style.color = "var(--primary)";
                 await record(char);
-                await new Promise(r => setTimeout(r, 1200));
-                if (!isContinuousPaused) continuousIndex++;
+
+                if (!isContinuousRunning) break;
+
+                // 2. 休憩フェーズ (録音と同じ長さ: 1.2秒)
+                document.getElementById("modal-status").textContent = "☕ 休憩中...";
+                document.getElementById("modal-status").style.color = "var(--accent-orange)";
+                
+                let pauseLeft = 1200;
+                while (pauseLeft > 0 && isContinuousRunning) {
+                    if (!isContinuousPaused) {
+                        await new Promise(r => setTimeout(r, 200));
+                        pauseLeft -= 200;
+                    } else {
+                        await new Promise(r => setTimeout(r, 200));
+                    }
+                }
+
+                if (!isContinuousPaused && isContinuousRunning) continuousIndex++;
             }
             if (continuousIndex >= continuousTargets.length && isContinuousRunning) {
-                alert("🎉 このタブの連続録色が完了しました！");
+                alert("🎉 このタブの連続録音が完了しました！");
                 stopContinuousRecording();
             }
         }
@@ -804,41 +832,85 @@
         function updateTrimPanelUI() {
             const title = document.getElementById("trim-char-title");
             const offInput = document.getElementById("trim-offset");
-            const durInput = document.getElementById("trim-duration");
+            const offNum = document.getElementById("num-trim-offset");
+            const endInput = document.getElementById("trim-end");
+            const endNum = document.getElementById("num-trim-end");
             const btnPrev = document.getElementById("btn-preview-trim");
+            const isBatch = document.getElementById("batch-apply-chk").checked;
+            const hasRecordings = Object.keys(voiceLibrary).length > 0;
 
             if (selectedChar && voiceLibrary[selectedChar]) {
                 const item = voiceLibrary[selectedChar];
-                title.textContent = `✂️ 「${selectedChar}」の微調整`;
-                offInput.disabled = false; durInput.disabled = false; btnPrev.disabled = false;
-                offInput.max = (item.buffer.duration - 0.05).toFixed(2);
+                title.textContent = `✂️ 「${selectedChar}」の微調整${isBatch ? '（一括適用中）' : ''}`;
+                offInput.disabled = false; offNum.disabled = false;
+                endInput.disabled = false; endNum.disabled = false;
+                btnPrev.disabled = false;
+                
+                const totalDur = item.buffer.duration;
+                offInput.max = (totalDur - 0.05).toFixed(2);
                 offInput.value = item.offset;
-                durInput.max = item.buffer.duration.toFixed(2);
-                durInput.value = item.duration;
-                document.getElementById("val-trim-offset").textContent = Number(item.offset).toFixed(2) + "s";
-                document.getElementById("val-trim-duration").textContent = Number(item.duration).toFixed(2) + "s";
+                offNum.value = Number(item.offset).toFixed(2);
+                
+                endInput.min = (item.offset + 0.05).toFixed(2);
+                endInput.max = totalDur.toFixed(2);
+                const currentEnd = item.offset + item.duration;
+                endInput.value = currentEnd.toFixed(2);
+                endNum.value = Number(currentEnd).toFixed(2);
+            } else if (isBatch && hasRecordings) {
+                title.textContent = `✂️ 全音素の切り出し一括調整`;
+                offInput.disabled = false; offNum.disabled = false;
+                endInput.disabled = false; endNum.disabled = false;
+                btnPrev.disabled = true;
             } else {
                 title.textContent = `✂️ 切り出し調整（未選択）`;
-                offInput.disabled = true; durInput.disabled = true; btnPrev.disabled = true;
+                offInput.disabled = true; offNum.disabled = true;
+                endInput.disabled = true; endNum.disabled = true;
+                btnPrev.disabled = true;
             }
             drawTrimWaveform();
         }
 
+        function syncTrimInputs(type, val) {
+            const num = parseFloat(val);
+            if (isNaN(num)) return;
+
+            const offInput = document.getElementById("trim-offset");
+            const offNum = document.getElementById("num-trim-offset");
+            const endInput = document.getElementById("trim-end");
+            const endNum = document.getElementById("num-trim-end");
+
+            if (type === 'offset') {
+                offInput.value = num;
+                offNum.value = num.toFixed(2);
+            } else if (type === 'end') {
+                endInput.value = num;
+                endNum.value = num.toFixed(2);
+            }
+
+            updateTrimParams();
+        }
+
         function updateTrimParams() {
-            const offVal = parseFloat(document.getElementById("trim-offset").value);
-            const durVal = parseFloat(document.getElementById("trim-duration").value);
+            const offVal = parseFloat(document.getElementById("trim-offset").value) || 0;
+            const endVal = parseFloat(document.getElementById("trim-end").value) || 0.8;
             const isBatch = document.getElementById("batch-apply-chk").checked;
 
-            document.getElementById("val-trim-offset").textContent = offVal.toFixed(2) + "s";
-            document.getElementById("val-trim-duration").textContent = durVal.toFixed(2) + "s";
+            const newDur = Math.max(0.05, endVal - offVal);
+
+            document.getElementById("num-trim-offset").value = offVal.toFixed(2);
+            document.getElementById("num-trim-end").value = endVal.toFixed(2);
 
             if (isBatch) {
                 for (const char in voiceLibrary) {
-                    if (voiceLibrary[char]) { voiceLibrary[char].offset = offVal; voiceLibrary[char].duration = durVal; }
+                    if (voiceLibrary[char]) {
+                        const item = voiceLibrary[char];
+                        item.offset = Math.min(offVal, item.buffer.duration - 0.05);
+                        item.duration = Math.min(newDur, item.buffer.duration - item.offset);
+                    }
                 }
             } else if (selectedChar && voiceLibrary[selectedChar]) {
                 voiceLibrary[selectedChar].offset = offVal;
-                voiceLibrary[selectedChar].duration = durVal;
+                voiceLibrary[selectedChar].duration = newDur;
             }
             saveToLocalStorage(true);
             drawTrimWaveform();
