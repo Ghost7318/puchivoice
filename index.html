@@ -442,12 +442,6 @@
             <!-- 声の微調整エリア -->
             <div class="param-group">
                 <div style="font-weight: bold; font-size: 0.75em; margin-bottom: 2px;">🎛️ パラメータ <span style="font-size:0.65em; font-weight:normal; opacity:0.7;">(Wタップで初期化)</span></div>
-                
-                <div class="param-row">
-                    <label id="lbl-base-freq">基準音程</label>
-                    <input type="range" id="param-base-freq" min="200" max="500" step="5" value="350" oninput="updateParamFromUI()">
-                    <span class="param-val" id="val-base-freq">350Hz</span>
-                </div>
 
                 <div class="param-row">
                     <label id="lbl-pitch">ピッチシフト</label>
@@ -495,8 +489,8 @@
 
     <!-- フッター -->
     <footer class="app-footer">
-        <div style="font-weight: bold;">© ぷちボイス[cite: 12]</div>
-        <div class="credit-text">コーディング: Gemini ｜ サイト提案: <a href="https://x.com/yourei_osirase" target="_blank">ゆーれい</a>[cite: 12]</div>
+        <div style="font-weight: bold;">© ぷちボイス</div>
+        <div class="credit-text">コーディング: Gemini ｜ サイト提案: <a href="https://x.com/yourei_osirase" target="_blank">ゆーれい</a></div>
     </footer>
 
     <!-- 連続録音用モーダル -->
@@ -521,7 +515,7 @@
         const phonemeCategories = {
             "あ〜さ行": ["あ","い","う","え","お", "か","き","く","け","こ", "さ","し","す","せ","そ"],
             "た〜ま行": ["た","ち","つ","て","と", "な","に","ぬ","ね","の", "は","ひ","ふ","へ","ほ", "ま","み","む","め","も"],
-            "や〜ん": ["や","ゆ","よ", "ら","り","る","れ","ろ", "わ","를","ん"],
+            "や〜ん": ["や","ゆ","よ", "ら","り","る","れ","ろ", "わ","を","ん"],
             "濁音・半濁音": ["が","ぎ","ぐ","げ","ご", "ざ","じ","ず","ぜ","ぞ", "だ","ぢ","づ","で","ど", "ば","び","ぶ","べ","ぼ", "ぱ","ぴ","ぷ","ぺ","ぽ"],
             "拗音(しゃ等)": [
                 "きゃ","きゅ","きょ", "ぎゃ","ぎゅ","ぎょ",
@@ -543,7 +537,7 @@
         let selectedChar = null;
 
         let sentences = [
-            { text: "あたらしいぶんしょう", nodes: [], params: { baseFreq: 350, pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 } }
+            { text: "あたらしいぶんしょう", nodes: [], params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 } }
         ];
         let currentSentenceIdx = 0;
         let currentSentenceData = sentences[0];
@@ -605,7 +599,6 @@
         }
 
         function setupAllResetHandlers() {
-            bindDoubleTapReset([document.getElementById("lbl-base-freq"), document.getElementById("param-base-freq")], () => resetParam('param-base-freq', 350));
             bindDoubleTapReset([document.getElementById("lbl-pitch"), document.getElementById("param-pitch")], () => resetParam('param-pitch', 0));
             bindDoubleTapReset([document.getElementById("lbl-speed"), document.getElementById("param-speed")], () => resetParam('param-speed', 0.20));
             bindDoubleTapReset([document.getElementById("lbl-smoothness"), document.getElementById("param-smoothness")], () => resetParam('param-smoothness', 20));
@@ -615,33 +608,6 @@
             
             bindDoubleTapReset([document.getElementById("lbl-trim-offset"), document.getElementById("trim-offset")], () => resetTrimParam('offset'));
             bindDoubleTapReset([document.getElementById("lbl-trim-duration"), document.getElementById("trim-duration")], () => resetTrimParam('duration'));
-        }
-
-        function detectFundamentalFreq(buffer) {
-            const data = buffer.getChannelData(0);
-            const sampleRate = buffer.sampleRate;
-            const startSample = Math.floor(data.length * 0.15);
-            const endSample = Math.floor(data.length * 0.75);
-            if (endSample - startSample < 512) return 350;
-
-            const slice = data.subarray(startSample, endSample);
-            const minPeriod = Math.floor(sampleRate / 700);
-            const maxPeriod = Math.floor(sampleRate / 80);
-
-            let maxCorr = 0;
-            let bestPeriod = 0;
-            for (let period = minPeriod; period <= maxPeriod; period++) {
-                let corr = 0;
-                for (let i = 0; i < slice.length - period; i += 2) {
-                    corr += slice[i] * slice[i + period];
-                }
-                if (corr > maxCorr) { maxCorr = corr; bestPeriod = period; }
-            }
-            if (bestPeriod > 0) {
-                const freq = sampleRate / bestPeriod;
-                if (freq >= 80 && freq <= 700) return freq;
-            }
-            return 350;
         }
 
         function renderUI() {
@@ -698,7 +664,7 @@
             sentences.push({
                 text: "あたらしいぶんしょう",
                 nodes: [],
-                params: { baseFreq: 350, pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 }
+                params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 }
             });
             switchSentenceSlot(sentences.length - 1);
         }
@@ -713,7 +679,6 @@
         }
 
         function applyParamsToUI(p) {
-            document.getElementById("param-base-freq").value = p.baseFreq;
             document.getElementById("param-pitch").value = p.pitch;
             document.getElementById("param-speed").value = p.speed;
             document.getElementById("param-smoothness").value = p.smoothness;
@@ -725,7 +690,6 @@
 
         function updateParamFromUI() {
             currentSentenceData.params = {
-                baseFreq: parseFloat(document.getElementById("param-base-freq").value),
                 pitch: parseFloat(document.getElementById("param-pitch").value),
                 speed: parseFloat(document.getElementById("param-speed").value),
                 smoothness: parseFloat(document.getElementById("param-smoothness").value),
@@ -738,7 +702,6 @@
 
         function updateParamDisp() {
             const p = currentSentenceData.params;
-            document.getElementById("val-base-freq").textContent = p.baseFreq + "Hz";
             document.getElementById("val-pitch").textContent = p.pitch;
             document.getElementById("val-speed").textContent = p.speed + "s";
             document.getElementById("val-smoothness").textContent = p.smoothness + "%";
@@ -761,15 +724,13 @@
                 const buffer = await blob.arrayBuffer();
                 const audioBuffer = await audioCtx.decodeAudioData(buffer);
                 
-                const detectedPitch = detectFundamentalFreq(audioBuffer);
                 const initialOffset = Math.min(0.20, audioBuffer.duration * 0.2);
                 const initialDuration = Math.min(0.60, Math.max(0.1, audioBuffer.duration - initialOffset));
 
                 voiceLibrary[char] = {
                     buffer: audioBuffer,
                     offset: parseFloat(initialOffset.toFixed(2)),
-                    duration: parseFloat(initialDuration.toFixed(2)),
-                    detectedPitch: detectedPitch
+                    duration: parseFloat(initialDuration.toFixed(2))
                 };
 
                 if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
@@ -884,16 +845,20 @@
         }
 
         function playTrimmedSelected() { if (selectedChar) playTrimmedChar(selectedChar); }
+        
+        // 単音試聴時も録音時の元の声の高さのまま再生
         function playTrimmedChar(char) {
             initAudio();
             const item = voiceLibrary[char];
             if (!item) return;
-            const targetFreq = currentSentenceData.params.baseFreq;
-            const normRatio = item.detectedPitch ? (targetFreq / item.detectedPitch) : 1.0;
+            
             const trimmedBuffer = getTrimmedBuffer(audioCtx, item.buffer, item.offset, item.duration);
             const src = audioCtx.createBufferSource();
             src.buffer = trimmedBuffer;
-            src.playbackRate.value = normRatio;
+            
+            // ピッチ変更スライダーのみ反映（原音の高さ保持）
+            const pitchShift = currentSentenceData ? currentSentenceData.params.pitch : 0;
+            src.playbackRate.value = Math.pow(2, pitchShift / 12);
 
             const compressor = audioCtx.createDynamicsCompressor();
             compressor.threshold.setValueAtTime(-20, audioCtx.currentTime);
@@ -1033,10 +998,10 @@
             return parseText(text).filter(c => ![" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ"].includes(c));
         }
 
+        // 初期イントネーションはすべて「0.0」（一定）に同期
         function syncIntonationNodes() {
             const text = currentSentenceData.text;
             const tokens = parseVoicedTokens(text);
-            const autoInton = currentSentenceData.params.intonation;
 
             if (tokens.length === 0) {
                 currentSentenceData.nodes = [];
@@ -1046,8 +1011,8 @@
                     if (currentSentenceData.nodes[i] !== undefined && currentSentenceData.nodes.length === tokens.length) {
                         newNodes.push(currentSentenceData.nodes[i]);
                     } else {
-                        const progress = tokens.length > 1 ? i / (tokens.length - 1) : 0.5;
-                        newNodes.push(parseFloat((Math.sin(progress * Math.PI) * (autoInton * 0.4)).toFixed(1)));
+                        // 初期状態は高低差のないフラット（0）
+                        newNodes.push(0);
                     }
                 }
                 currentSentenceData.nodes = newNodes;
@@ -1055,13 +1020,10 @@
             drawIntonationGraph();
         }
 
+        // リセット時も完全平坦（一定）に初期化
         function resetIntonationGraph() {
             const tokens = parseVoicedTokens(currentSentenceData.text);
-            const autoInton = currentSentenceData.params.intonation;
-            currentSentenceData.nodes = tokens.map((_, i) => {
-                const progress = tokens.length > 1 ? i / (tokens.length - 1) : 0.5;
-                return parseFloat((Math.sin(progress * Math.PI) * (autoInton * 0.4)).toFixed(1));
-            });
+            currentSentenceData.nodes = tokens.map(() => 0);
             drawIntonationGraph();
         }
 
@@ -1228,7 +1190,22 @@
                     const two = text.substring(i, i + 2);
                     if (allYouon.includes(two)) { result.push(two); i += 2; continue; }
                 }
-                result.push(text[i]); i++;
+                const c = text[i];
+                if (["ー", "―", "ｰ"].includes(c)) {
+                    let prevChar = null;
+                    for (let j = result.length - 1; j >= 0; j--) {
+                        if (![" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ"].includes(result[j])) {
+                            prevChar = result[j];
+                            break;
+                        }
+                    }
+                    if (prevChar) {
+                        result.push(prevChar);
+                    }
+                } else {
+                    result.push(c);
+                }
+                i++;
             }
             return result;
         }
@@ -1255,8 +1232,8 @@
             const src = ctx.createBufferSource();
             src.buffer = trimmedBuf;
 
-            const targetFreq = opts.baseFreq;
-            const normRatio = item.detectedPitch ? (targetFreq / item.detectedPitch) : 1.0;
+            // 原音のピッチ（音の高さ）をそのまま保持するため、基準補正倍率は 1.0 に固定
+            const normRatio = 1.0;
 
             const customShift = currentSentenceData.nodes[nodeIdx] !== undefined ? currentSentenceData.nodes[nodeIdx] : 0;
             const nextShift = currentSentenceData.nodes[nodeIdx + 1] !== undefined ? currentSentenceData.nodes[nodeIdx + 1] : customShift;
@@ -1408,8 +1385,7 @@
                     saveObj.samples[char] = {
                         data: await blobToBase64(blob),
                         offset: voiceLibrary[char].offset,
-                        duration: voiceLibrary[char].duration,
-                        detectedPitch: voiceLibrary[char].detectedPitch || 350
+                        duration: voiceLibrary[char].duration
                     };
                 }
             }
@@ -1439,8 +1415,7 @@
                     voiceLibrary[char] = {
                         buffer: audioBuffer,
                         offset: sampleInfo.offset !== undefined ? sampleInfo.offset : 0.20,
-                        duration: sampleInfo.duration || 0.60,
-                        detectedPitch: sampleInfo.detectedPitch || 350
+                        duration: sampleInfo.duration || 0.60
                     };
                 }
                 renderUI();
@@ -1459,8 +1434,7 @@
                     exportData.samples[char] = {
                         data: await blobToBase64(blob),
                         offset: voiceLibrary[char].offset,
-                        duration: voiceLibrary[char].duration,
-                        detectedPitch: voiceLibrary[char].detectedPitch || 350
+                        duration: voiceLibrary[char].duration
                     };
                 }
             }
@@ -1500,8 +1474,7 @@
                         voiceLibrary[char] = {
                             buffer: audioBuffer,
                             offset: sampleInfo.offset !== undefined ? sampleInfo.offset : 0.20,
-                            duration: sampleInfo.duration || 0.60,
-                            detectedPitch: sampleInfo.detectedPitch || 350
+                            duration: sampleInfo.duration || 0.60
                         };
                     }
                     renderUI();
