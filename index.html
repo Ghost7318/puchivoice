@@ -425,7 +425,7 @@
             </div>
             <div class="sentence-tabs" id="sentence-tabs-container"></div>
 
-            <textarea id="talk-text" placeholder="ここに文章を入力。スペースや句読点で間が空きます" oninput="currentSentenceData.text = this.value; syncIntonationNodes()">あたらしいぶんしょう</textarea>
+            <textarea id="talk-text" placeholder="ここに文章を入力。スペースや句読点で間が空きます" oninput="currentSentenceData.text = this.value; syncIntonationNodes(true)"></textarea>
 
             <div style="margin: 6px 0;">
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75em; font-weight:bold; margin-bottom:4px;">
@@ -537,7 +537,7 @@
         let selectedChar = null;
 
         let sentences = [
-            { text: "あたらしいぶんしょう", nodes: [], params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 } }
+            { text: "あたらしいぶんしょう", nodes: [0, 0, 0, 0, 0, 0, 0, 0, 0], params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 } }
         ];
         let currentSentenceIdx = 0;
         let currentSentenceData = sentences[0];
@@ -663,7 +663,7 @@
             }
             sentences.push({
                 text: "あたらしいぶんしょう",
-                nodes: [],
+                nodes: [0, 0, 0, 0, 0, 0, 0, 0, 0],
                 params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, intonation: 0, volume: 1.0 }
             });
             switchSentenceSlot(sentences.length - 1);
@@ -674,7 +674,7 @@
             currentSentenceData = sentences[idx];
             document.getElementById("talk-text").value = currentSentenceData.text;
             applyParamsToUI(currentSentenceData.params);
-            syncIntonationNodes();
+            syncIntonationNodes(true);
             renderSentenceTabs();
         }
 
@@ -846,7 +846,6 @@
 
         function playTrimmedSelected() { if (selectedChar) playTrimmedChar(selectedChar); }
         
-        // 単音試聴時も録音時の元の声の高さのまま再生
         function playTrimmedChar(char) {
             initAudio();
             const item = voiceLibrary[char];
@@ -856,7 +855,6 @@
             const src = audioCtx.createBufferSource();
             src.buffer = trimmedBuffer;
             
-            // ピッチ変更スライダーのみ反映（原音の高さ保持）
             const pitchShift = currentSentenceData ? currentSentenceData.params.pitch : 0;
             src.playbackRate.value = Math.pow(2, pitchShift / 12);
 
@@ -892,6 +890,8 @@
             if (!canvas) return;
             const ctx = canvas.getContext("2d");
             const rect = canvas.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+
             canvas.width = rect.width * (window.devicePixelRatio || 1);
             canvas.height = rect.height * (window.devicePixelRatio || 1);
             ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
@@ -994,37 +994,82 @@
             window.addEventListener('touchend', stopDrag);
         }
 
-        function parseVoicedTokens(text) {
-            return parseText(text).filter(c => ![" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ"].includes(c));
+        // カタカナを平仮名に変換
+        function toHiragana(str) {
+            return str.replace(/[\u30a1-\u30f6]/g, function(match) {
+                var chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            });
         }
 
-        // 初期イントネーションはすべて「0.0」（一定）に同期
-        function syncIntonationNodes() {
-            const text = currentSentenceData.text;
+        // テキストをトークン化（長音符「ー」は前の音の長さを拡張）
+        function parseText(text) {
+            const result = [];
+            let i = 0;
+            while (i < text.length) {
+                let char = text[i];
+                
+                if (i < text.length - 1) {
+                    const two = text.substring(i, i + 2);
+                    const hTwo = toHiragana(two);
+                    if (allYouon.includes(hTwo)) {
+                        char = two;
+                        i += 2;
+                    } else {
+                        i += 1;
+                    }
+                } else {
+                    i += 1;
+                }
+
+                // 長音符（ー）の場合は直前の発声音素の音長（length）を伸ばす
+                if (["ー", "―", "ｰ"].includes(char)) {
+                    let lastVoiced = null;
+                    for (let j = result.length - 1; j >= 0; j--) {
+                        if (result[j].type === 'voice') {
+                            lastVoiced = result[j];
+                            break;
+                        }
+                    }
+                    if (lastVoiced) {
+                        lastVoiced.length += 1;
+                        lastVoiced.display += char;
+                    }
+                    continue;
+                }
+
+                if ([" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ"].includes(char)) {
+                    result.push({ type: 'pause', char: char, length: 1 });
+                } else {
+                    const hChar = toHiragana(char);
+                    result.push({ type: 'voice', char: hChar, display: char, length: 1 });
+                }
+            }
+            return result;
+        }
+
+        function parseVoicedTokens(text) {
+            return parseText(text).filter(t => t.type === 'voice');
+        }
+
+        // イントネーションノードの同期（全0で初期化してまっすぐの直線を作成）
+        function syncIntonationNodes(forceReset = false) {
+            const text = currentSentenceData ? currentSentenceData.text : "";
             const tokens = parseVoicedTokens(text);
 
             if (tokens.length === 0) {
                 currentSentenceData.nodes = [];
             } else {
-                const newNodes = [];
-                for (let i = 0; i < tokens.length; i++) {
-                    if (currentSentenceData.nodes[i] !== undefined && currentSentenceData.nodes.length === tokens.length) {
-                        newNodes.push(currentSentenceData.nodes[i]);
-                    } else {
-                        // 初期状態は高低差のないフラット（0）
-                        newNodes.push(0);
-                    }
+                if (forceReset || !currentSentenceData.nodes || currentSentenceData.nodes.length !== tokens.length) {
+                    currentSentenceData.nodes = new Array(tokens.length).fill(0);
                 }
-                currentSentenceData.nodes = newNodes;
             }
             drawIntonationGraph();
         }
 
-        // リセット時も完全平坦（一定）に初期化
+        // イントネーションのリセット（すべて0に初期化）
         function resetIntonationGraph() {
-            const tokens = parseVoicedTokens(currentSentenceData.text);
-            currentSentenceData.nodes = tokens.map(() => 0);
-            drawIntonationGraph();
+            syncIntonationNodes(true);
         }
 
         function drawIntonationGraph() {
@@ -1032,24 +1077,28 @@
             const wrapper = document.getElementById("intonation-canvas-wrapper");
             if (!canvas || !wrapper) return;
 
-            const text = currentSentenceData.text;
+            const text = currentSentenceData ? currentSentenceData.text : "";
             const tokens = parseVoicedTokens(text);
 
             const minWidthPerChar = 44;
-            const parentW = wrapper.parentElement.clientWidth || 300;
+            const parentContainer = wrapper.parentElement;
+            const parentW = (parentContainer && parentContainer.clientWidth > 0) 
+                ? parentContainer.clientWidth 
+                : (wrapper.clientWidth || 300);
             const calculatedWidth = Math.max(parentW, tokens.length * minWidthPerChar);
             
             canvas.style.width = calculatedWidth + "px";
             wrapper.style.width = calculatedWidth + "px";
 
             const ctx = canvas.getContext("2d");
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * (window.devicePixelRatio || 1);
-            canvas.height = rect.height * (window.devicePixelRatio || 1);
-            ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+            const dpr = window.devicePixelRatio || 1;
+            const h = 80;
+            
+            canvas.width = Math.floor(calculatedWidth * dpr);
+            canvas.height = Math.floor(h * dpr);
+            ctx.scale(dpr, dpr);
 
-            const w = rect.width;
-            const h = rect.height;
+            const w = calculatedWidth;
             ctx.clearRect(0, 0, w, h);
 
             if (tokens.length === 0) {
@@ -1061,10 +1110,15 @@
             }
 
             const centerY = h / 2;
+            // 基準の中心線（薄い点線）
             ctx.strokeStyle = "rgba(150,150,150,0.3)";
             ctx.setLineDash([3, 3]);
             ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(w, centerY); ctx.stroke();
             ctx.setLineDash([]);
+
+            if (!currentSentenceData.nodes || currentSentenceData.nodes.length !== tokens.length) {
+                currentSentenceData.nodes = new Array(tokens.length).fill(0);
+            }
 
             const points = [];
             const padding = 30;
@@ -1073,27 +1127,30 @@
 
             for (let i = 0; i < tokens.length; i++) {
                 const px = tokens.length === 1 ? w / 2 : padding + (i / (tokens.length - 1)) * availableW;
-                const pitchVal = currentSentenceData.nodes[i] || 0;
+                const pitchVal = (currentSentenceData.nodes && typeof currentSentenceData.nodes[i] === 'number') ? currentSentenceData.nodes[i] : 0;
                 const py = centerY - ((pitchVal / maxRange) * (h / 2 - 14) * intonationGraphScale);
-                points.push({ x: px, y: py, char: tokens[i], val: pitchVal });
+                points.push({ x: px, y: py, char: tokens[i].display, val: pitchVal });
             }
 
+            // グラフの直線を描画（端から端までまっすぐ繋ぐ）
             ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff758c';
             ctx.lineWidth = 2.5;
             ctx.beginPath();
+
             if (points.length === 1) {
-                ctx.moveTo(0, points[0].y); ctx.lineTo(w, points[0].y);
+                ctx.moveTo(0, points[0].y); 
+                ctx.lineTo(w, points[0].y);
             } else {
-                ctx.moveTo(points[0].x, points[0].y);
-                for (let i = 0; i < points.length - 1; i++) {
-                    const xc = (points[i].x + points[i + 1].x) / 2;
-                    const yc = (points[i].y + points[i + 1].y) / 2;
-                    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+                ctx.moveTo(0, points[0].y);
+                ctx.lineTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
                 }
-                ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+                ctx.lineTo(w, points[points.length - 1].y);
             }
             ctx.stroke();
 
+            // ノードとテキスト文字を描画
             points.forEach((p) => {
                 ctx.fillStyle = ctx.strokeStyle;
                 ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
@@ -1182,34 +1239,6 @@
             window.addEventListener('touchend', stopDrag);
         }
 
-        function parseText(text) {
-            const result = [];
-            let i = 0;
-            while (i < text.length) {
-                if (i < text.length - 1) {
-                    const two = text.substring(i, i + 2);
-                    if (allYouon.includes(two)) { result.push(two); i += 2; continue; }
-                }
-                const c = text[i];
-                if (["ー", "―", "ｰ"].includes(c)) {
-                    let prevChar = null;
-                    for (let j = result.length - 1; j >= 0; j--) {
-                        if (![" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ"].includes(result[j])) {
-                            prevChar = result[j];
-                            break;
-                        }
-                    }
-                    if (prevChar) {
-                        result.push(prevChar);
-                    }
-                } else {
-                    result.push(c);
-                }
-                i++;
-            }
-            return result;
-        }
-
         function fallbackChar(c) {
             const map = {
                 'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ',
@@ -1232,11 +1261,21 @@
             const src = ctx.createBufferSource();
             src.buffer = trimmedBuf;
 
-            // 原音のピッチ（音の高さ）をそのまま保持するため、基準補正倍率は 1.0 に固定
+            // 音素を伸張再生（ループ処理）
+            src.loop = true;
+            const bufDur = trimmedBuf.duration;
+            if (bufDur > 0.08) {
+                src.loopStart = bufDur * 0.25;
+                src.loopEnd = bufDur * 0.85;
+            } else {
+                src.loopStart = 0;
+                src.loopEnd = bufDur;
+            }
+
             const normRatio = 1.0;
 
-            const customShift = currentSentenceData.nodes[nodeIdx] !== undefined ? currentSentenceData.nodes[nodeIdx] : 0;
-            const nextShift = currentSentenceData.nodes[nodeIdx + 1] !== undefined ? currentSentenceData.nodes[nodeIdx + 1] : customShift;
+            const customShift = (currentSentenceData.nodes && currentSentenceData.nodes[nodeIdx] !== undefined) ? currentSentenceData.nodes[nodeIdx] : 0;
+            const nextShift = (currentSentenceData.nodes && currentSentenceData.nodes[nodeIdx + 1] !== undefined) ? currentSentenceData.nodes[nodeIdx + 1] : customShift;
 
             const startRate = normRatio * Math.pow(2, (opts.pitch + customShift) / 12);
             const endRate = normRatio * Math.pow(2, (opts.pitch + nextShift) / 12);
@@ -1288,15 +1327,20 @@
             let voicedIndex = 0;
             const overlapTime = (opts.speed * 0.45) * (opts.smoothness / 100);
 
-            tokens.forEach((char) => {
-                if ([" ", " "].includes(char)) { currentTime += opts.speed * 1.2; return; }
-                if (char === "、") { currentTime += opts.speed * 1.2; return; }
-                if (["。", "！", "？"].includes(char)) { currentTime += opts.speed * 2.2; return; }
-                if (char === "\n") { currentTime += opts.speed * 2.0; return; }
-                if (["っ", "ッ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
+            tokens.forEach((token) => {
+                if (token.type === 'pause') {
+                    const char = token.char;
+                    if ([" ", " "].includes(char)) { currentTime += opts.speed * 1.2; return; }
+                    if (char === "、") { currentTime += opts.speed * 1.2; return; }
+                    if (["。", "！", "？"].includes(char)) { currentTime += opts.speed * 2.2; return; }
+                    if (char === "\n") { currentTime += opts.speed * 2.0; return; }
+                    if (["っ", "ッ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
+                    return;
+                }
 
-                scheduleSpeechNode(audioCtx, audioCtx.destination, char, currentTime, opts.speed, opts, voicedIndex);
-                currentTime += Math.max(0.02, opts.speed - overlapTime);
+                const playDuration = opts.speed * token.length;
+                scheduleSpeechNode(audioCtx, audioCtx.destination, token.char, currentTime, playDuration, opts, voicedIndex);
+                currentTime += Math.max(0.02, playDuration - overlapTime);
                 voicedIndex++;
             });
         }
@@ -1305,35 +1349,45 @@
             await initAudio();
             const text = currentSentenceData.text;
             const tokens = parseText(text);
-            if (tokens.length === 0) return alert("文章を入力してください。");
+            if (tokens.filter(t => t.type === 'voice').length === 0) return alert("文章を入力してください。");
 
             const opts = currentSentenceData.params;
             const sampleRate = 44100;
             const overlapTime = (opts.speed * 0.45) * (opts.smoothness / 100);
 
             let totalDuration = 0.5;
-            tokens.forEach(char => {
-                if ([" ", " "].includes(char)) totalDuration += opts.speed * 1.2;
-                else if (char === "、") totalDuration += opts.speed * 1.2;
-                else if (["。", "！", "？"].includes(char)) totalDuration += opts.speed * 2.2;
-                else if (char === "\n") totalDuration += opts.speed * 2.0;
-                else if (["っ", "ッ"].includes(char)) totalDuration += opts.speed * 0.6;
-                else totalDuration += Math.max(0.02, opts.speed - overlapTime);
+            tokens.forEach(token => {
+                if (token.type === 'pause') {
+                    const char = token.char;
+                    if ([" ", " "].includes(char)) totalDuration += opts.speed * 1.2;
+                    else if (char === "、") totalDuration += opts.speed * 1.2;
+                    else if (["。", "！", "？"].includes(char)) totalDuration += opts.speed * 2.2;
+                    else if (char === "\n") totalDuration += opts.speed * 2.0;
+                    else if (["っ", "ッ"].includes(char)) totalDuration += opts.speed * 0.6;
+                } else {
+                    const playDuration = opts.speed * token.length;
+                    totalDuration += Math.max(0.02, playDuration - overlapTime);
+                }
             });
 
             const offlineCtx = new OfflineAudioContext(1, Math.ceil(sampleRate * (totalDuration + 0.2)), sampleRate);
             let currentTime = 0.05;
             let voicedIndex = 0;
 
-            tokens.forEach((char) => {
-                if ([" ", " "].includes(char)) { currentTime += opts.speed * 1.2; return; }
-                if (char === "、") { currentTime += opts.speed * 1.2; return; }
-                if (["。", "！", "？"].includes(char)) { currentTime += opts.speed * 2.2; return; }
-                if (char === "\n") { currentTime += opts.speed * 2.0; return; }
-                if (["っ", "ッ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
+            tokens.forEach((token) => {
+                if (token.type === 'pause') {
+                    const char = token.char;
+                    if ([" ", " "].includes(char)) { currentTime += opts.speed * 1.2; return; }
+                    if (char === "、") { currentTime += opts.speed * 1.2; return; }
+                    if (["。", "！", "？"].includes(char)) { currentTime += opts.speed * 2.2; return; }
+                    if (char === "\n") { currentTime += opts.speed * 2.0; return; }
+                    if (["っ", "ッ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
+                    return;
+                }
 
-                scheduleSpeechNode(offlineCtx, offlineCtx.destination, char, currentTime, opts.speed, opts, voicedIndex);
-                currentTime += Math.max(0.02, opts.speed - overlapTime);
+                const playDuration = opts.speed * token.length;
+                scheduleSpeechNode(offlineCtx, offlineCtx.destination, token.char, currentTime, playDuration, opts, voicedIndex);
+                currentTime += Math.max(0.02, playDuration - overlapTime);
                 voicedIndex++;
             });
 
@@ -1492,8 +1546,28 @@
             setupWaveformEvents();
             setupIntonationEvents();
             setupAllResetHandlers();
+            
             await loadFromLocalStorage();
+            
+            // 初回表示時に強制的にノードをすべて0（まっすぐ）で生成して描画
             switchSentenceSlot(currentSentenceIdx);
+            syncIntonationNodes(true);
+
+            const wrapper = document.getElementById("intonation-canvas-wrapper");
+            if (wrapper && window.ResizeObserver) {
+                const ro = new ResizeObserver(() => {
+                    requestAnimationFrame(() => {
+                        drawIntonationGraph();
+                        drawTrimWaveform();
+                    });
+                });
+                ro.observe(wrapper.parentElement || wrapper);
+            }
+
+            setTimeout(() => {
+                syncIntonationNodes(true);
+                drawTrimWaveform();
+            }, 100);
         };
 
         window.onresize = () => {
