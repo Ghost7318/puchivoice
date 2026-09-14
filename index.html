@@ -445,7 +445,7 @@
             </div>
             <div class="sentence-tabs" id="sentence-tabs-container"></div>
 
-            <textarea id="talk-text" placeholder="ここに文章を入力。スペースや句読点で間が空きます" oninput="currentSentenceData.text = this.value; syncIntonationNodes(true)"></textarea>
+            <textarea id="talk-text" placeholder="ここに文章を入力。カタカナも読めます" oninput="currentSentenceData.text = this.value; syncIntonationNodes(true)"></textarea>
 
             <div style="margin: 6px 0;">
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75em; font-weight:bold; margin-bottom:4px;">
@@ -685,6 +685,7 @@
             applyParamsToUI(currentSentenceData.params);
             syncIntonationNodes(true);
             renderSentenceTabs();
+            saveToLocalStorage(true);
         }
 
         function applyParamsToUI(p) {
@@ -705,6 +706,7 @@
                 volume: parseFloat(document.getElementById("param-volume").value)
             };
             updateParamDisp();
+            saveToLocalStorage(true);
         }
 
         function updateParamDisp() {
@@ -785,14 +787,12 @@
                 document.getElementById("modal-char-disp").textContent = char;
                 document.getElementById("modal-sub-info").textContent = `進捗: ${continuousIndex + 1} / ${continuousTargets.length}`;
                 
-                // 1. 録音フェーズ (約1.2秒)
                 document.getElementById("modal-status").textContent = "🎙️ 録音中...";
                 document.getElementById("modal-status").style.color = "var(--primary)";
                 await record(char);
 
                 if (!isContinuousRunning) break;
 
-                // 2. 休憩フェーズ (録音と同じ長さ: 1.2秒)
                 document.getElementById("modal-status").textContent = "☕ 休憩中...";
                 document.getElementById("modal-status").style.color = "var(--accent-orange)";
                 
@@ -1066,15 +1066,43 @@
             window.addEventListener('touchend', stopDrag);
         }
 
-        // カタカナを平仮名に変換
+        // 半角・全角カタカナをひらがなに統一変換
         function toHiragana(str) {
-            return str.replace(/[\u30a1-\u30f6]/g, function(match) {
+            if (!str) return "";
+            const halfToFullMap = {
+                'ｶﾞ':'が','ｷﾞ':'ぎ','ｸﾞ':'ぐ','ｹﾞ':'げ','ｺﾞ':'ご',
+                'ｻﾞ':'ざ','ｼﾞ':'じ','ｽﾞ':'ず','ｾﾞ':'せ','ｿﾞ':'ぞ',
+                'ﾀﾞ':'だ','ﾁﾞ':'ぢ','ﾂﾞ':'づ','ﾃﾞ':'で','ﾄﾞ':'ど',
+                'ﾊﾞ':'ば','ﾋﾞ':'び','ﾌﾞ':'ぶ','ﾍﾞ':'べ','ﾎﾞ':'ぼ',
+                'ﾊﾟ':'ぱ','ﾋﾟ':'ぴ','ﾌﾟ':'ぷ','ﾍﾟ':'ぺ','ﾎﾟ':'ぽ',
+                'ｳﾞ':'ゔ','ﾜﾞ':'ゔ',
+                'ｱ':'あ','ｲ':'い','ｳ':'う','ｴ':'え','ｵ':'お',
+                'ｶ':'か','ｷ':'き','ｸ':'く','ｹ':'け','ｺ':'こ',
+                'ｻ':'さ','ｼ':'し','ｽ':'す','ｾ':'せ','ｿ':'そ',
+                'ﾀ':'た','ﾁ':'ち','ﾂ':'つ','ﾃ':'て','ﾄ':'と',
+                'ﾅ':'な','ﾆ':'に','ﾇ':'ぬ','ﾈ':'ね','ﾉ':'の',
+                'ﾊ':'は','ﾋ':'ひ','ﾌ':'ふ','ﾍ':'へ','ﾎ':'ほ',
+                'ﾏ':'ま','ﾐ':'み','ﾑ':'む','ﾒ':'め','ﾓ':'も',
+                'ﾔ':'や','ﾕ':'ゆ','ﾖ':'よ',
+                'ﾗ':'ら','ﾘ':'り','ﾙ':'る','ﾚ':'れ','ﾛ':'ろ',
+                'ﾜ':'わ','ｦ':'を','ﾝ':'ん',
+                'ｧ':'ぁ','ｨ':'ぃ','ｩ':'ぅ','ｪ':'ぇ','ｫ':'ぉ',
+                'ｬ':'ゃ','ｭ':'ゅ','ｮ':'ょ','ｯ':'っ',
+                'ｰ':'ー'
+            };
+
+            let s = str;
+            for (let k in halfToFullMap) {
+                s = s.replace(new RegExp(k, 'g'), halfToFullMap[k]);
+            }
+
+            return s.replace(/[\u30a1-\u30f6]/g, function(match) {
                 var chr = match.charCodeAt(0) - 0x60;
                 return String.fromCharCode(chr);
             });
         }
 
-        // テキストをトークン化（長音符「ー」は前の音の長さを拡張）
+        // テキストをトークン化（カタカナもひらがな音素に変換）
         function parseText(text) {
             const result = [];
             let i = 0;
@@ -1094,7 +1122,6 @@
                     i += 1;
                 }
 
-                // 長音符（ー）の場合は直前の発声音素の音長（length）を伸ばす
                 if (["ー", "―", "ｰ"].includes(char)) {
                     let lastVoiced = null;
                     for (let j = result.length - 1; j >= 0; j--) {
@@ -1110,7 +1137,7 @@
                     continue;
                 }
 
-                if ([" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ"].includes(char)) {
+                if ([" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ", "ｯ"].includes(char)) {
                     result.push({ type: 'pause', char: char, length: 1 });
                 } else {
                     const hChar = toHiragana(char);
@@ -1124,7 +1151,6 @@
             return parseText(text).filter(t => t.type === 'voice');
         }
 
-        // イントネーションノードの同期（全0で初期化してまっすぐの直線を作成）
         function syncIntonationNodes(forceReset = false) {
             const text = currentSentenceData ? currentSentenceData.text : "";
             const tokens = parseVoicedTokens(text);
@@ -1139,9 +1165,9 @@
             drawIntonationGraph();
         }
 
-        // イントネーションのリセット（すべて0に初期化）
         function resetIntonationGraph() {
             syncIntonationNodes(true);
+            saveToLocalStorage(true);
         }
 
         function drawIntonationGraph() {
@@ -1182,7 +1208,6 @@
             }
 
             const centerY = h / 2;
-            // 基準の中心線（薄い点線）
             ctx.strokeStyle = "rgba(150,150,150,0.3)";
             ctx.setLineDash([3, 3]);
             ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(w, centerY); ctx.stroke();
@@ -1204,7 +1229,6 @@
                 points.push({ x: px, y: py, char: tokens[i].display, val: pitchVal });
             }
 
-            // グラフの直線を描画（端から端までまっすぐ繋ぐ）
             ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff758c';
             ctx.lineWidth = 2.5;
             ctx.beginPath();
@@ -1222,7 +1246,6 @@
             }
             ctx.stroke();
 
-            // ノードとテキスト文字を描画
             points.forEach((p) => {
                 ctx.fillStyle = ctx.strokeStyle;
                 ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
@@ -1298,10 +1321,16 @@
                 if (minDist < 35 && closest !== -1) {
                     currentSentenceData.nodes[closest] = 0;
                     drawIntonationGraph();
+                    saveToLocalStorage(true);
                 }
             };
 
-            const stopDrag = () => { activeNodeIdx = -1; };
+            const stopDrag = () => { 
+                if (activeNodeIdx !== -1) {
+                    saveToLocalStorage(true);
+                }
+                activeNodeIdx = -1; 
+            };
             canvas.addEventListener('mousedown', handlePointer);
             canvas.addEventListener('mousemove', (e) => { if (activeNodeIdx !== -1) handlePointer(e); });
             window.addEventListener('mouseup', stopDrag);
@@ -1319,9 +1348,10 @@
                 'ば':'は','び':'ひ','ぶ':'ふ','べ':'へ','ぼ':'ほ',
                 'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ',
                 'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お',
-                'ゃ':'や','ゅ':'ゆ','ょ':'よ'
+                'ゃ':'や','ゅ':'ゆ','ょ':'よ','ゔ':'う'
             };
-            return map[c] || 'あ';
+            const h = toHiragana(c);
+            return map[h] || map[c] || 'あ';
         }
 
         function scheduleSpeechNode(ctx, destination, char, startTime, playDuration, opts, nodeIdx) {
@@ -1395,7 +1425,7 @@
                     if (char === "、") { currentTime += opts.speed * 1.2; return; }
                     if (["。", "！", "？"].includes(char)) { currentTime += opts.speed * 2.2; return; }
                     if (char === "\n") { currentTime += opts.speed * 2.0; return; }
-                    if (["っ", "ッ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
+                    if (["っ", "ッ", "ｯ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
                     return;
                 }
 
@@ -1424,7 +1454,7 @@
                     else if (char === "、") totalDuration += opts.speed * 1.2;
                     else if (["。", "！", "？"].includes(char)) totalDuration += opts.speed * 2.2;
                     else if (char === "\n") totalDuration += opts.speed * 2.0;
-                    else if (["っ", "ッ"].includes(char)) totalDuration += opts.speed * 0.6;
+                    else if (["っ", "ッ", "ｯ"].includes(char)) totalDuration += opts.speed * 0.6;
                 } else {
                     const playDuration = opts.speed * token.length;
                     totalDuration += Math.max(0.02, playDuration - overlapTime);
@@ -1442,7 +1472,7 @@
                     if (char === "、") { currentTime += opts.speed * 1.2; return; }
                     if (["。", "！", "？"].includes(char)) { currentTime += opts.speed * 2.2; return; }
                     if (char === "\n") { currentTime += opts.speed * 2.0; return; }
-                    if (["っ", "ッ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
+                    if (["っ", "ッ", "ｯ"].includes(char)) { currentTime += opts.speed * 0.6; return; }
                     return;
                 }
 
@@ -1492,7 +1522,7 @@
         async function saveToLocalStorage(silent = false) {
             const icon = document.getElementById("lib-icon").value || "🎙️";
             const name = document.getElementById("lib-name").value || "マイボイス";
-            const saveObj = { icon: icon, name: name, samples: {}, sentences: sentences };
+            const saveObj = { icon: icon, name: name, samples: {} };
 
             for (const char in voiceLibrary) {
                 if (voiceLibrary[char]) {
@@ -1504,21 +1534,32 @@
                     };
                 }
             }
-            try { localStorage.setItem("puchivoice_saved_library", JSON.stringify(saveObj)); } catch (e) {}
+            try { 
+                localStorage.setItem("puchivoice_saved_library", JSON.stringify(saveObj));
+                localStorage.setItem("puchivoice_saved_sentences", JSON.stringify(sentences));
+            } catch (e) {}
         }
 
         async function loadFromLocalStorage() {
-            const saved = localStorage.getItem("puchivoice_saved_library");
-            if (!saved) return false;
+            const savedLib = localStorage.getItem("puchivoice_saved_library");
+            const savedSentences = localStorage.getItem("puchivoice_saved_sentences");
+
+            if (savedSentences) {
+                try {
+                    const parsedS = JSON.parse(savedSentences);
+                    if (Array.isArray(parsedS) && parsedS.length > 0) {
+                        sentences = parsedS;
+                        currentSentenceIdx = 0;
+                        currentSentenceData = sentences[0];
+                    }
+                } catch (e) {}
+            }
+
+            if (!savedLib) return false;
             try {
-                const data = JSON.parse(saved);
+                const data = JSON.parse(savedLib);
                 if (data.icon) document.getElementById("lib-icon").value = data.icon;
                 if (data.name) document.getElementById("lib-name").value = data.name;
-                if (data.sentences && Array.isArray(data.sentences)) {
-                    sentences = data.sentences;
-                    currentSentenceIdx = 0;
-                    currentSentenceData = sentences[0];
-                }
 
                 await initAudio();
                 voiceLibrary = {}; selectedChar = null;
@@ -1534,7 +1575,7 @@
                     };
                 }
                 renderUI();
-                switchSentenceSlot(0);
+                switchSentenceSlot(currentSentenceIdx);
                 return true;
             } catch (e) { return false; }
         }
@@ -1542,7 +1583,7 @@
         async function exportLibrary() {
             const icon = document.getElementById("lib-icon").value || "🎙️";
             const name = document.getElementById("lib-name").value || "マイボイス";
-            const exportData = { icon: icon, name: name, samples: {}, sentences: sentences };
+            const exportData = { icon: icon, name: name, samples: {} };
             for (const char in voiceLibrary) {
                 if (voiceLibrary[char]) {
                     const blob = bufferToWavBlob(voiceLibrary[char].buffer);
@@ -1577,7 +1618,6 @@
                     const data = JSON.parse(e.target.result);
                     if (data.icon) document.getElementById("lib-icon").value = data.icon;
                     if (data.name) document.getElementById("lib-name").value = data.name;
-                    if (data.sentences) { sentences = data.sentences; currentSentenceIdx = 0; currentSentenceData = sentences[0]; }
 
                     await initAudio();
                     voiceLibrary = {}; selectedChar = null;
@@ -1593,9 +1633,8 @@
                         };
                     }
                     renderUI();
-                    switchSentenceSlot(0);
                     saveToLocalStorage(true);
-                    alert(`ライブラリを読み込みました！`);
+                    alert(`ボイスライブラリを読み込みました！`);
                 } catch (err) { alert("読み込みに失敗しました。"); }
             };
             reader.readAsText(file);
@@ -1610,7 +1649,6 @@
             
             await loadFromLocalStorage();
             
-            // 初回表示時に強制的にノードをすべて0（まっすぐ）で生成して描画
             switchSentenceSlot(currentSentenceIdx);
             syncIntonationNodes(true);
 
