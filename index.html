@@ -781,7 +781,7 @@
                 if (!isContinuousPaused) continuousIndex++;
             }
             if (continuousIndex >= continuousTargets.length && isContinuousRunning) {
-                alert("🎉 このタブの連続録音が完了しました！");
+                alert("🎉 このタブの連続録色が完了しました！");
                 stopContinuousRecording();
             }
         }
@@ -1261,27 +1261,16 @@
             const src = ctx.createBufferSource();
             src.buffer = trimmedBuf;
 
-            // 音素を伸張再生（ループ処理）
-            src.loop = true;
-            const bufDur = trimmedBuf.duration;
-            if (bufDur > 0.08) {
-                src.loopStart = bufDur * 0.25;
-                src.loopEnd = bufDur * 0.85;
-            } else {
-                src.loopStart = 0;
-                src.loopEnd = bufDur;
-            }
-
-            const normRatio = 1.0;
-
             const customShift = (currentSentenceData.nodes && currentSentenceData.nodes[nodeIdx] !== undefined) ? currentSentenceData.nodes[nodeIdx] : 0;
             const nextShift = (currentSentenceData.nodes && currentSentenceData.nodes[nodeIdx + 1] !== undefined) ? currentSentenceData.nodes[nodeIdx + 1] : customShift;
 
-            const startRate = normRatio * Math.pow(2, (opts.pitch + customShift) / 12);
-            const endRate = normRatio * Math.pow(2, (opts.pitch + nextShift) / 12);
+            const startRate = Math.pow(2, (opts.pitch + customShift) / 12);
+            const endRate = Math.pow(2, (opts.pitch + nextShift) / 12);
 
             src.playbackRate.setValueAtTime(startRate, startTime);
-            src.playbackRate.linearRampToValueAtTime(endRate, startTime + playDuration);
+            if (startRate !== endRate) {
+                src.playbackRate.linearRampToValueAtTime(endRate, startTime + playDuration);
+            }
 
             let lastNode = src;
             if (opts.tone !== 0) {
@@ -1294,8 +1283,8 @@
             const gainNode = ctx.createGain();
             const smoothRatio = opts.smoothness / 100;
             const overlap = 0.08 * smoothRatio;
-            const attack = Math.min(0.04 * Math.max(0.1, smoothRatio), playDuration * 0.3);
-            const release = Math.min(0.08 * Math.max(0.1, smoothRatio), playDuration * 0.5);
+            const attack = Math.min(0.03 * Math.max(0.1, smoothRatio), playDuration * 0.2);
+            const release = Math.min(0.06 * Math.max(0.1, smoothRatio), playDuration * 0.4);
 
             gainNode.gain.setValueAtTime(0, startTime);
             gainNode.gain.linearRampToValueAtTime(opts.volume, startTime + attack);
