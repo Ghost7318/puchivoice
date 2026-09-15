@@ -718,17 +718,38 @@
             document.getElementById("val-volume").textContent = p.volume;
         }
 
+        let currentRecorder = null;
+        let currentTimeoutId = null;
+
         function record(char) {
             return new Promise(async (resolve) => {
                 await initAudio();
                 await initMic();
                 const recBtn = document.getElementById(`rec-${char}`);
-                if (recBtn && recBtn.disabled) return resolve();
+                if (recBtn && recBtn.disabled && !isContinuousRunning) return resolve(false);
 
                 const mediaRecorder = new MediaRecorder(micStream);
+                currentRecorder = mediaRecorder;
                 const chunks = [];
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                
+                let isHandled = false;
+
                 mediaRecorder.onstop = async () => {
+                    currentRecorder = null;
+                    if (isHandled) return;
+                    isHandled = true;
+
+                    if (!isContinuousRunning && continuousActionRequested) {
+                        if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
+                        return resolve(false);
+                    }
+
+                    if (continuousActionRequested) {
+                        if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
+                        return resolve(false);
+                    }
+
                     const blob = new Blob(chunks);
                     const buffer = await blob.arrayBuffer();
                     const audioBuffer = await audioCtx.decodeAudioData(buffer);
@@ -746,12 +767,15 @@
                     selectForTrim(char);
                     renderUI();
                     saveToLocalStorage(true);
-                    resolve();
+                    resolve(true);
                 };
 
                 mediaRecorder.start();
                 if (recBtn) { recBtn.textContent = "録音中"; recBtn.classList.add("recording"); recBtn.disabled = true; }
-                setTimeout(() => { if (mediaRecorder.state === "recording") mediaRecorder.stop(); }, 1200);
+                
+                currentTimeoutId = setTimeout(() => { 
+                    if (mediaRecorder.state === "recording") mediaRecorder.stop(); 
+                }, 1200);
             });
         }
 
@@ -768,59 +792,133 @@
         let isContinuousPaused = false;
         let continuousIndex = 0;
         let continuousTargets = [];
+        let continuousActionRequested = null;
+        let continuousResolvePause = null;
 
         async function startContinuousRecording() {
             await initAudio();
             await initMic();
+            if (isContinuousRunning) return;
             isContinuousRunning = true;
             isContinuousPaused = false;
             continuousIndex = 0;
             continuousTargets = phonemeCategories[currentTab];
             document.getElementById("recording-modal").style.display = "flex";
+            document.getElementById("btn-pause-rec").textContent = "⏸️ 一時停止";
             runContinuousLoop();
         }
 
         async function runContinuousLoop() {
             while (isContinuousRunning && continuousIndex < continuousTargets.length) {
-                if (isContinuousPaused) { await new Promise(r => setTimeout(r, 200)); continue; }
+                if (isContinuousPaused) {
+                    document.getElementById("modal-status").textContent = "⏸️ 一時停止中";
+                    document.getElementById("modal-status").style.color = "var(--text-color)";
+                    await new Promise(r => { continuousResolvePause = r; });
+                    continuousResolvePause = null;
+                    if (!isContinuousRunning) break;
+                }
+
                 const char = continuousTargets[continuousIndex];
                 document.getElementById("modal-char-disp").textContent = char;
                 document.getElementById("modal-sub-info").textContent = `進捗: ${continuousIndex + 1} / ${continuousTargets.length}`;
                 
                 document.getElementById("modal-status").textContent = "🎙️ 録音中...";
                 document.getElementById("modal-status").style.color = "var(--primary)";
-                await record(char);
+
+                continuousActionRequested = null;
+                const recordedSuccess = await record(char);
 
                 if (!isContinuousRunning) break;
 
-                document.getElementById("modal-status").textContent = "☕ 休憩中...";
+                if (continuousActionRequested) {
+                    if (continuousActionRequested === 'prev') {
+                        continuousIndex = Math.max(0, continuousIndex - 1);
+                    } else if (continuousActionRequested === 'restart') {
+                        continuousIndex = 0;
+                    }
+                    continuousActionRequested = null;
+                    continue;
+                }
+
+                if (!recordedSuccess) continue;
+
+                document.getElementById("modal-status").textContent = "☕ 次の文字へ...";
                 document.getElementById("modal-status").style.color = "var(--accent-orange)";
                 
-                let pauseLeft = 1200;
-                while (pauseLeft > 0 && isContinuousRunning) {
-                    if (!isContinuousPaused) {
-                        await new Promise(r => setTimeout(r, 200));
-                        pauseLeft -= 200;
+                let pauseLeft = 1000;
+                while (pauseLeft > 0 && isContinuousRunning && !continuousActionRequested) {
+                    if (isContinuousPaused) {
+                        document.getElementById("modal-status").textContent = "⏸️ 一時停止中";
+                        document.getElementById("modal-status").style.color = "var(--text-color)";
+                        await new Promise(r => { continuousResolvePause = r; });
+                        continuousResolvePause = null;
                     } else {
-                        await new Promise(r => setTimeout(r, 200));
+                        await new Promise(r => setTimeout(r, 100));
+                        pauseLeft -= 100;
                     }
                 }
 
-                if (!isContinuousPaused && isContinuousRunning) continuousIndex++;
+                if (!isContinuousRunning) break;
+
+                if (continuousActionRequested) {
+                    if (continuousActionRequested === 'prev') {
+                        continuousIndex = Math.max(0, continuousIndex - 1);
+                    } else if (continuousActionRequested === 'restart') {
+                        continuousIndex = 0;
+                    }
+                    continuousActionRequested = null;
+                } else {
+                    continuousIndex++;
+                }
             }
+
             if (continuousIndex >= continuousTargets.length && isContinuousRunning) {
                 alert("🎉 このタブの連続録音が完了しました！");
                 stopContinuousRecording();
             }
         }
 
+        function interruptContinuousStep(action) {
+            continuousActionRequested = action;
+            if (currentTimeoutId) clearTimeout(currentTimeoutId);
+            if (currentRecorder && currentRecorder.state === "recording") {
+                currentRecorder.stop();
+            }
+            if (isContinuousPaused && continuousResolvePause) {
+                isContinuousPaused = false;
+                document.getElementById("btn-pause-rec").textContent = "⏸️ 一時停止";
+                continuousResolvePause();
+            }
+        }
+
         function togglePauseContinuous() {
             isContinuousPaused = !isContinuousPaused;
             document.getElementById("btn-pause-rec").textContent = isContinuousPaused ? "▶️ 再開" : "⏸️ 一時停止";
+            if (!isContinuousPaused && continuousResolvePause) {
+                continuousResolvePause();
+            }
         }
-        function prevContinuousStep() { if (continuousIndex > 0) continuousIndex--; }
-        function restartContinuousRecording() { continuousIndex = 0; isContinuousPaused = false; }
-        function stopContinuousRecording() { isContinuousRunning = false; document.getElementById("recording-modal").style.display = "none"; }
+
+        function prevContinuousStep() {
+            if (!isContinuousRunning) return;
+            interruptContinuousStep('prev');
+        }
+
+        function restartContinuousRecording() {
+            if (!isContinuousRunning) return;
+            interruptContinuousStep('restart');
+        }
+
+        function stopContinuousRecording() {
+            isContinuousRunning = false;
+            isContinuousPaused = false;
+            if (currentTimeoutId) clearTimeout(currentTimeoutId);
+            if (currentRecorder && currentRecorder.state === "recording") {
+                currentRecorder.stop();
+            }
+            if (continuousResolvePause) continuousResolvePause();
+            document.getElementById("recording-modal").style.display = "none";
+        }
 
         function selectForTrim(char) {
             if (!voiceLibrary[char]) return;
@@ -1066,7 +1164,6 @@
             window.addEventListener('touchend', stopDrag);
         }
 
-        // 半角・全角カタカナをひらがなに統一変換
         function toHiragana(str) {
             if (!str) return "";
             const halfToFullMap = {
@@ -1102,7 +1199,6 @@
             });
         }
 
-        // テキストをトークン化（カタカナもひらがな音素に変換）
         function parseText(text) {
             const result = [];
             let i = 0;
@@ -1537,7 +1633,12 @@
             try { 
                 localStorage.setItem("puchivoice_saved_library", JSON.stringify(saveObj));
                 localStorage.setItem("puchivoice_saved_sentences", JSON.stringify(sentences));
-            } catch (e) {}
+            } catch (e) {
+                console.warn("Storage save limit error:", e);
+                if (!silent) {
+                    alert("⚠️ ブラウザの容量制限（約5MB）を超えたため、自動ローカル保存に失敗しました。「📤 保存」ボタンからJSONファイルで書き出してください。");
+                }
+            }
         }
 
         async function loadFromLocalStorage() {
