@@ -1615,16 +1615,50 @@
             return new Blob([arrayBuffer], { type: 'audio/wav' });
         }
 
-        async function saveToLocalStorage(silent = false) {
+        // 高速化用のメモリ上同期Base64変換関数
+        function bufferToBase64Wav(buffer) {
+            const numChannels = 1, sampleRate = buffer.sampleRate, format = 1, bitDepth = 16;
+            const samples = buffer.getChannelData(0);
+            const bytesPerSample = bitDepth / 8;
+            const dataByteCount = samples.length * bytesPerSample;
+            const arrayBuffer = new ArrayBuffer(44 + dataByteCount);
+            const view = new DataView(arrayBuffer);
+            const writeString = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+
+            writeString(0, 'RIFF'); view.setUint32(4, 36 + dataByteCount, true);
+            writeString(8, 'WAVE'); writeString(12, 'fmt ');
+            view.setUint32(16, 16, true); view.setUint16(20, format, true);
+            view.setUint16(22, numChannels, true); view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * bytesPerSample, true); view.setUint16(32, numChannels * bytesPerSample, true);
+            view.setUint16(34, bitDepth, true); writeString(36, 'data');
+            view.setUint32(40, dataByteCount, true);
+
+            let offset = 44;
+            for (let i = 0; i < samples.length; i++) {
+                const s = Math.max(-1, Math.min(1, samples[i]));
+                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                offset += 2;
+            }
+
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = '';
+            const len = bytes.byteLength;
+            const chunk = 0x8000;
+            for (let i = 0; i < len; i += chunk) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+            }
+            return 'data:audio/wav;base64,' + btoa(binary);
+        }
+
+        function saveToLocalStorage(silent = false) {
             const icon = document.getElementById("lib-icon").value || "🎙️";
             const name = document.getElementById("lib-name").value || "マイボイス";
             const saveObj = { icon: icon, name: name, samples: {} };
 
             for (const char in voiceLibrary) {
                 if (voiceLibrary[char]) {
-                    const blob = bufferToWavBlob(voiceLibrary[char].buffer);
                     saveObj.samples[char] = {
-                        data: await blobToBase64(blob),
+                        data: bufferToBase64Wav(voiceLibrary[char].buffer),
                         offset: voiceLibrary[char].offset,
                         duration: voiceLibrary[char].duration
                     };
@@ -1681,15 +1715,14 @@
             } catch (e) { return false; }
         }
 
-        async function exportLibrary() {
+        function exportLibrary() {
             const icon = document.getElementById("lib-icon").value || "🎙️";
             const name = document.getElementById("lib-name").value || "マイボイス";
             const exportData = { icon: icon, name: name, samples: {} };
             for (const char in voiceLibrary) {
                 if (voiceLibrary[char]) {
-                    const blob = bufferToWavBlob(voiceLibrary[char].buffer);
                     exportData.samples[char] = {
-                        data: await blobToBase64(blob),
+                        data: bufferToBase64Wav(voiceLibrary[char].buffer),
                         offset: voiceLibrary[char].offset,
                         duration: voiceLibrary[char].duration
                     };
@@ -1700,14 +1733,6 @@
             const a = document.createElement("a"); a.href = url; a.download = `${name}_voice_library.json`; a.target = "_blank";
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 20000);
-        }
-
-        function blobToBase64(blob) {
-            return new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(blob);
-            });
         }
 
         function importLibrary(fileInput) {
