@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" data-theme="light" data-color="pink">
+<html lang="ja" data-theme="dark" data-color="pink">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -7,47 +7,45 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>">
     <style>
         :root {
-            --primary: #ff758c;
-            --primary-hover: #ff7eb3;
-            --bg-gradient: #fff0f3;
-            --card-bg: #ffffff;
-            --text-color: #4a4a4a;
-            --border-color: #ffe0e6;
-            --accent-blue: #70a1ff;
+            --primary: #ff6b81;
+            --primary-hover: #ff8597;
+            --bg-gradient: #181920;
+            --card-bg: #222530;
+            --text-color: #e8ecf4;
+            --border-color: #343a4e;
+            --panel-bg: #2a2e3d;
+            --accent-blue: #4f80ff;
             --accent-green: #2ed573;
-            --accent-purple: #a55eea;
-            --accent-orange: #ff9f43;
-            --border-radius: 16px;
-            --panel-bg: #ffe6eb;
+            --accent-purple: #a29bfe;
+            --accent-orange: #ffa502;
+            --accent-red: #ff5252;
+            --border-radius: 12px;
         }
-
-        [data-theme="dark"] {
-            --bg-gradient: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --border-color: #333333;
-            --panel-bg: #2a2a2a;
-        }
-
-        [data-color="pink"] { --primary: #ff758c; --primary-hover: #ff7eb3; --light-bg: #fff0f3; --light-panel: #ffe6eb; }
-        [data-color="blue"] { --primary: #3498db; --primary-hover: #5dade2; --light-bg: #ebf5fb; --light-panel: #d4e6f1; }
-        [data-color="purple"] { --primary: #9b59b6; --primary-hover: #af7ac5; --light-bg: #f4ecf7; --light-panel: #e8daef; }
-        [data-color="green"] { --primary: #2ecc71; --primary-hover: #58d68d; --light-bg: #e8f8f5; --light-panel: #d1f2eb; }
-        [data-color="yellow"] { --primary: #f1c40f; --primary-hover: #f4d03f; --light-bg: #fef9e7; --light-panel: #fcf3cf; }
-        [data-color="red"] { --primary: #e74c3c; --primary-hover: #ec7063; --light-bg: #fdedec; --light-panel: #fadbd8; }
 
         [data-theme="light"] {
-            --bg-gradient: var(--light-bg);
-            --panel-bg: var(--light-panel);
+            --bg-gradient: #f0f2f7;
+            --card-bg: #ffffff;
+            --text-color: #2c3240;
+            --border-color: #d1d8e0;
+            --panel-bg: #f5f7fa;
         }
+
+        [data-color="blue"] { --primary: #4f80ff; --primary-hover: #709bff; }
+        [data-color="pink"] { --primary: #ff6b81; --primary-hover: #ff8597; }
+        [data-color="cyan"] { --primary: #00d2d3; --primary-hover: #48dbfb; }
+        [data-color="purple"] { --primary: #a29bfe; --primary-hover: #b8e994; }
+        [data-color="green"] { --primary: #10ac84; --primary-hover: #2ed573; }
+        [data-color="orange"] { --primary: #ff9f43; --primary-hover: #ffa502; }
 
         * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         html, body { width: 100%; max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
         body {
-            font-family: 'Hiragino Maru Gothic ProN', 'Meiryo UI', 'M PLUS Rounded 1c', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
             background: var(--bg-gradient);
             color: var(--text-color);
-            padding: 8px;
+            padding: 10px;
+            padding-left: max(10px, env(safe-area-inset-left));
+            padding-right: max(10px, env(safe-area-inset-right));
             min-height: 100vh;
             transition: background 0.3s, color 0.3s;
             display: flex;
@@ -55,18 +53,29 @@
             align-items: center;
         }
 
+        a {
+            color: var(--primary);
+            text-decoration: underline;
+            word-break: break-all;
+            font-weight: bold;
+            transition: color 0.2s ease;
+        }
+        a:hover {
+            opacity: 0.8;
+        }
+
         .app-header {
             text-align: center;
             color: var(--text-color);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
-        .app-header h1 { font-size: 1.5em; margin: 0; letter-spacing: 1px; color: var(--primary); }
-        .app-header p { margin: 0; font-size: 0.78em; opacity: 0.85; }
+        .app-header h1 { font-size: 1.4em; margin: 0; letter-spacing: 1px; color: var(--primary); font-weight: 800; }
+        .app-header p { margin: 0; font-size: 0.85em; opacity: 0.85; font-weight: 500; }
 
         .theme-selector-bar {
             display: flex;
@@ -74,44 +83,46 @@
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            background: var(--panel-bg);
-            padding: 6px 12px;
-            border-radius: 18px;
+            background: var(--card-bg);
+            padding: 6px 10px;
+            border-radius: 20px;
             border: 1px solid var(--border-color);
-            margin-bottom: 10px;
-            font-size: 0.75em;
+            margin-bottom: 6px;
+            font-size: 0.8em;
+            width: 100%;
+            max-width: 600px;
         }
         .theme-btn {
             border: none;
-            padding: 4px 8px;
-            border-radius: 10px;
+            padding: 5px 10px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.72em;
-            background: var(--card-bg);
+            font-size: 0.75em;
+            background: var(--panel-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            min-height: 28px;
+            min-height: 32px;
         }
-        .theme-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .theme-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
         .color-dot {
-            width: 18px; height: 18px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            width: 22px; height: 22px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1400px;
             width: 100%;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
 
         .card {
             background: var(--card-bg);
             border-radius: var(--border-radius);
             padding: 12px;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -121,21 +132,23 @@
         }
 
         .card-title {
-            font-size: 1.05em;
+            font-size: 1em;
             color: var(--primary);
             margin-top: 0;
             margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 6px;
-            border-bottom: 2px dashed var(--border-color);
-            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
         }
 
         .assist-bar {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 6px 8px;
             margin-bottom: 8px;
             width: 100%;
@@ -143,10 +156,10 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
         }
-        .assist-title { font-size: 0.75em; font-weight: bold; color: var(--primary); }
-        .assist-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
+        .assist-title { font-size: 0.8em; font-weight: bold; color: var(--primary); }
+        .assist-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .lib-controls {
             display: flex;
@@ -155,7 +168,7 @@
             margin-bottom: 8px;
             background: var(--panel-bg);
             padding: 6px 8px;
-            border-radius: 10px;
+            border-radius: 8px;
             align-items: center;
             width: 100%;
             border: 1px solid var(--border-color);
@@ -166,108 +179,131 @@
             gap: 4px;
             margin-bottom: 8px;
             overflow-x: auto;
-            padding-bottom: 3px;
+            padding-bottom: 4px;
             width: 100%;
             -webkit-overflow-scrolling: touch;
         }
         .tab-btn {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            padding: 6px 10px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.72em;
+            font-size: 0.78em;
             white-space: nowrap;
             color: var(--text-color);
             font-weight: bold;
             flex-shrink: 0;
-            min-height: 30px;
+            min-height: 36px;
         }
-        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-        .grid-container { max-height: 190px; overflow-y: auto; padding-right: 2px; width: 100%; -webkit-overflow-scrolling: touch; }
-        .char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 5px; width: 100%; }
+        .grid-container { max-height: 220px; overflow-y: auto; padding-right: 4px; width: 100%; -webkit-overflow-scrolling: touch; }
+        .char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; width: 100%; }
         .char-card {
             background: var(--panel-bg);
-            border: 1.5px solid var(--border-color);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 4px 3px;
+            padding: 6px 3px;
             text-align: center;
         }
-        .char-card.recorded { border-color: var(--accent-green); background: rgba(46,213,115,0.05); }
-        .char-card.selected { border-color: var(--accent-purple); box-shadow: 0 0 6px rgba(165, 94, 234, 0.4); }
-        .char-name { font-size: 0.85em; font-weight: bold; color: var(--text-color); margin-bottom: 2px; }
+        .char-card.recorded { border-color: var(--accent-green); background: rgba(46, 213, 115, 0.1); }
+        .char-card.selected { border-color: var(--primary); box-shadow: 0 0 8px rgba(255, 107, 129, 0.4); }
+        .char-card.breath-card { border-color: var(--accent-orange); background: rgba(255, 165, 2, 0.1); }
+        .char-name { font-size: 0.85em; font-weight: bold; color: var(--text-color); margin-bottom: 4px; }
 
         .btn-mini {
-            border: none; border-radius: 6px; padding: 4px 2px; font-size: 0.7em; cursor: pointer; width: 100%; margin-top: 2px; font-weight: bold; min-height: 28px;
+            border: none; border-radius: 6px; padding: 4px 2px; font-size: 0.75em; cursor: pointer; width: 100%; margin-top: 2px; font-weight: bold; min-height: 30px;
         }
-        .btn-rec { background: #ff4757; color: white; }
-        .btn-rec.recording { animation: pulse 1s infinite; background: #ff6b81; }
+        .btn-rec { background: var(--accent-red); color: white; }
+        .btn-rec.recording { animation: pulse 1s infinite; background: #ff3333; }
         .btn-play { background: var(--accent-blue); color: white; }
-        .btn-play:disabled { background: #dfe4ea; cursor: not-allowed; opacity: 0.5; }
-        .btn-trim { background: var(--accent-purple); color: white; }
-        .btn-trim:disabled { background: #dfe4ea; cursor: not-allowed; opacity: 0.5; }
+        .btn-play:disabled { background: #4a5060; cursor: not-allowed; opacity: 0.4; }
+        .btn-trim { background: var(--primary); color: white; }
+        .btn-trim:disabled { background: #4a5060; cursor: not-allowed; opacity: 0.4; }
 
         .trim-panel {
             background: var(--panel-bg);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 8px;
-            margin-top: 6px;
-            border: 1px dashed var(--primary);
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
             width: 100%;
         }
         .trim-title {
-            font-size: 0.78em; font-weight: bold; color: var(--primary); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
+            font-size: 0.8em; font-weight: bold; color: var(--primary); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
         }
 
         .sentence-tabs {
             display: flex;
-            gap: 4px;
-            margin-bottom: 6px;
+            gap: 6px;
+            margin-bottom: 8px;
             overflow-x: auto;
-            padding-bottom: 3px;
+            padding-bottom: 4px;
             width: 100%;
             -webkit-overflow-scrolling: touch;
         }
         .sentence-tab {
             background: var(--panel-bg);
-            border: 1.5px solid var(--border-color);
-            padding: 5px 10px;
-            border-radius: 10px;
-            font-size: 0.72em;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.78em;
             cursor: pointer;
             font-weight: bold;
             color: var(--text-color);
             white-space: nowrap;
             flex-shrink: 0;
-            min-height: 28px;
+            min-height: 34px;
         }
         .sentence-tab.active {
             border-color: var(--primary);
             background: var(--primary);
-            color: white;
+            color: #fff;
         }
 
         textarea {
             width: 100%;
-            height: 60px;
-            border: 2px solid var(--border-color);
-            background: var(--card-bg);
+            height: 70px;
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
             color: var(--text-color);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 8px;
-            font-size: 0.9em;
+            font-size: 0.95em;
             resize: vertical;
             outline: none;
             font-family: inherit;
         }
         textarea:focus { border-color: var(--primary); }
 
+        .pitch-mode-selector {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .pitch-mode-btn {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: bold;
+            cursor: pointer;
+            min-height: 30px;
+        }
+        .pitch-mode-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
         .param-group {
             background: var(--panel-bg);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 8px;
-            margin: 6px 0;
+            margin: 8px 0;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -278,100 +314,135 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.78em;
+            font-size: 0.8em;
             width: 100%;
-            min-height: 28px;
+            min-height: 32px;
         }
-        .param-row label { width: 105px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
+        .param-row label { width: 95px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
         .param-row label:hover { color: var(--primary); }
-        .param-row input[type="range"] { flex: 1; margin: 0 6px; min-width: 0; accent-color: var(--primary); cursor: pointer; height: 24px; }
-        .param-val { width: 44px; text-align: right; color: var(--primary); font-weight: bold; flex-shrink: 0; cursor: pointer; }
+        .param-row input[type="range"] { flex: 1; margin: 0 6px; min-width: 0; accent-color: var(--primary); cursor: pointer; height: 32px; }
+        .param-val { width: 48px; text-align: right; color: var(--primary); font-weight: bold; flex-shrink: 0; cursor: pointer; }
 
         .num-input-box {
-            width: 54px;
-            font-size: 0.75em;
+            width: 58px;
+            font-size: 0.8em;
             font-weight: bold;
             text-align: right;
-            border: 1.5px solid var(--border-color);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             background: var(--card-bg);
             color: var(--primary);
-            padding: 2px 4px;
+            padding: 4px 4px;
             outline: none;
         }
         .num-input-box:focus { border-color: var(--primary); }
 
-        .action-buttons { display: flex; gap: 6px; margin-top: 6px; width: 100%; }
+        .action-buttons { display: flex; gap: 8px; margin-top: 8px; width: 100%; }
         .btn-main {
-            flex: 1; padding: 10px; border: none; border-radius: 20px; font-size: 0.9em; font-weight: bold; cursor: pointer;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px;
+            flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 0.95em; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px;
         }
-        .btn-talk { background: var(--primary); color: white; }
-        .btn-talk:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-save-wav { background: var(--accent-green); color: white; }
+        .btn-talk { background: var(--primary); color: #fff; }
+        .btn-talk:hover { opacity: 0.9; }
+        .btn-save-wav { background: var(--accent-green); color: #fff; }
 
         .btn-util {
-            background: var(--card-bg); border: 1.5px solid var(--primary); color: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 0.72em; font-weight: bold; cursor: pointer; min-height: 28px; display: inline-flex; align-items: center; justify-content: center;
+            background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 8px; border-radius: 6px; font-size: 0.75em; font-weight: bold; cursor: pointer; min-height: 32px; display: inline-flex; align-items: center; justify-content: center;
         }
-        .btn-util:hover { opacity: 0.8; }
+        .btn-util:hover { border-color: var(--primary); color: var(--primary); }
 
         .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 12px;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 12px;
+            backdrop-filter: blur(4px);
         }
         .modal-box {
-            background: var(--card-bg); border-radius: 16px; padding: 16px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+            background: var(--card-bg); border-radius: 16px; padding: 16px; max-width: 480px; width: 100%; box-shadow: 0 12px 32px rgba(0,0,0,0.4); border: 1px solid var(--border-color); max-height: 88vh; overflow-y: auto; text-align: left;
         }
-        .modal-char { font-size: 3em; font-weight: bold; color: var(--primary); margin: 2px 0; }
-        .modal-controls { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        .modal-box h3 { margin-top: 0; color: var(--primary); text-align: center; }
+        .modal-char { font-size: 3.2em; font-weight: bold; color: var(--primary); margin: 6px 0; text-align: center; }
+        .modal-controls { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 
         canvas { touch-action: none; width: 100%; max-width: 100%; display: block; }
+        #intonation-canvas { max-width: none !important; }
+
+        /* スライドバー1つ化のためスクロールバーを非表示 */
+        .intonation-scroll-box {
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .intonation-scroll-box::-webkit-scrollbar {
+            display: none;
+        }
 
         .app-footer {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 16px;
             padding: 10px;
-            font-size: 0.75em;
+            font-size: 0.78em;
             opacity: 0.85;
-            border-top: 1px dashed var(--border-color);
+            border-top: 1px solid var(--border-color);
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 6px;
             align-items: center;
         }
-        .app-footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: bold;
+
+        .guide-section {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            font-size: 0.82em;
+            line-height: 1.5;
         }
-        .app-footer a:hover {
-            text-decoration: underline;
+        .guide-section h4 { margin: 0 0 4px 0; color: var(--primary); font-size: 0.95em; }
+
+        /* スマホ縦画面 */
+        @media (max-width: 900px) and (orientation: portrait) {
+            .container { grid-template-columns: 1fr; gap: 10px; }
+            body { padding: 6px; }
+            .app-header h1 { font-size: 1.25em; }
+            .theme-selector-bar { justify-content: space-around; }
         }
 
-        @media (max-width: 850px) {
-            .container { grid-template-columns: 1fr; gap: 8px; }
-            body { padding: 4px; }
+        /* スマホ横画面（Landscape）対応 */
+        @media (orientation: landscape) and (max-height: 600px) {
+            body { padding: 6px 12px; }
+            .app-header { margin-bottom: 6px; gap: 2px; }
+            .app-header h1 { font-size: 1.1em; }
+            .app-header p { font-size: 0.75em; }
+            .theme-selector-bar { padding: 3px 8px; margin-bottom: 4px; font-size: 0.75em; }
+            .container { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .card { padding: 8px; }
+            .grid-container { max-height: 140px; }
+            textarea { height: 50px; }
+            .modal-box { max-height: 90vh; padding: 12px; }
         }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
     <div class="app-header">
         <h1>✨ ぷちボイス Studio</h1>
-        <p>声で作るおしゃべりスタジオ</p>
+        <p>声で作るおしゃべりスタジオ 🎙️</p>
         
         <div class="theme-selector-bar">
-            <span>🎨</span>
-            <button class="theme-btn active" id="theme-light-btn" onclick="setTheme('light')">☀️</button>
-            <button class="theme-btn" id="theme-dark-btn" onclick="setTheme('dark')">🌙</button>
-            <span style="margin-left:4px;">カラー:</span>
-            <span class="color-dot" style="background:#ff758c;" onclick="setColor('pink')" title="ピンク"></span>
-            <span class="color-dot" style="background:#3498db;" onclick="setColor('blue')" title="ブルー"></span>
-            <span class="color-dot" style="background:#9b59b6;" onclick="setColor('purple')" title="パープル"></span>
-            <span class="color-dot" style="background:#2ecc71;" onclick="setColor('green')" title="グリーン"></span>
-            <span class="color-dot" style="background:#f1c40f;" onclick="setColor('yellow')" title="イエロー"></span>
-            <span class="color-dot" style="background:#e74c3c;" onclick="setColor('red')" title="レッド"></span>
+            <button class="btn-util" onclick="openGuideModal()" style="padding:4px 8px; color:var(--primary); border-color:var(--primary);">📖 使い方・規約</button>
+            <span style="margin-left:2px;">🎨 テーマ:</span>
+            <button class="theme-btn" id="theme-light-btn" onclick="setTheme('light')">☀️ ライト</button>
+            <button class="theme-btn active" id="theme-dark-btn" onclick="setTheme('dark')">🌙 ダーク</button>
+            <span style="margin-left:2px;">カラー:</span>
+            <span class="color-dot" style="background:#4f80ff;" onclick="setColor('blue')" title="ブルー"></span>
+            <span class="color-dot" style="background:#ff6b81;" onclick="setColor('pink')" title="ピンク"></span>
+            <span class="color-dot" style="background:#00d2d3;" onclick="setColor('cyan')" title="シアン"></span>
+            <span class="color-dot" style="background:#a29bfe;" onclick="setColor('purple')" title="パープル"></span>
+            <span class="color-dot" style="background:#10ac84;" onclick="setColor('green')" title="グリーン"></span>
+            <span class="color-dot" style="background:#ff9f43;" onclick="setColor('orange')" title="オレンジ"></span>
         </div>
     </div>
 
@@ -384,13 +455,13 @@
                 <div class="assist-title">⚡ 録音アシスト</div>
                 <div class="assist-buttons">
                     <button class="btn-util" onclick="startContinuousRecording()">🚀 連続録音</button>
-                    <button class="btn-util" style="color:#e74c3c; border-color:#ff7875;" onclick="clearAllRecordings()">🗑️ クリア</button>
+                    <button class="btn-util" style="color:var(--accent-red); border-color:var(--accent-red);" onclick="clearAllRecordings()">🗑️ クリア</button>
                 </div>
             </div>
 
             <div class="lib-controls">
-                <input type="text" id="lib-icon" value="🎙️" style="padding: 4px; border: 1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); border-radius: 6px; width: 34px; text-align: center; font-size: 0.85em;">
-                <input type="text" id="lib-name" value="マイボイス" placeholder="名前" style="padding: 4px; border: 1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); border-radius: 6px; width: 80px; font-size:0.75em;">
+                <input type="text" id="lib-icon" value="🎙️" style="padding: 4px; border: 1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); border-radius: 6px; width: 34px; text-align: center; font-size: 0.9em; min-height:30px;">
+                <input type="text" id="lib-name" value="マイボイス" placeholder="名前" style="padding: 4px 6px; border: 1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); border-radius: 6px; width: 85px; font-size:0.8em; min-height:30px;">
                 <button class="btn-util" onclick="exportLibrary()">📤 保存</button>
                 <button class="btn-util" onclick="document.getElementById('import-file').click()">📥 読込</button>
                 <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importLibrary(this)">
@@ -406,30 +477,30 @@
             <div class="trim-panel" id="trim-panel">
                 <div class="trim-title">
                     <span id="trim-char-title">✂️ 切り出し調整（未選択）</span>
-                    <button class="btn-util" id="btn-preview-trim" onclick="playTrimmedSelected()" disabled style="padding: 2px 6px; font-size:0.7em;">▶ 試聴</button>
+                    <button class="btn-util" id="btn-preview-trim" onclick="playTrimmedSelected()" disabled style="padding: 2px 8px; font-size:0.75em;">▶ 試聴</button>
                 </div>
 
-                <canvas id="trim-waveform" style="height: 60px; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--border-color); margin-top: 4px; margin-bottom: 6px; cursor: pointer;"></canvas>
+                <canvas id="trim-waveform" style="height: 110px; background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-color); margin-top: 4px; margin-bottom: 6px; cursor: pointer;"></canvas>
 
-                <div style="font-size: 0.72em; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                    <input type="checkbox" id="batch-apply-chk" onchange="updateTrimPanelUI()" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                <div style="font-size: 0.75em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                    <input type="checkbox" id="batch-apply-chk" onchange="updateTrimPanelUI()" style="width: 18px; height: 18px; accent-color: var(--primary);">
                     <label for="batch-apply-chk" style="cursor:pointer; font-weight:bold;">🔗 登録済みに一括適用（チェックで数値一括編集）</label>
                 </div>
                 
                 <div class="param-row" style="margin-top: 2px;">
-                    <label id="lbl-trim-offset" style="width:75px; font-size:0.72em;">開始位置</label>
+                    <label id="lbl-trim-offset" style="width:75px; font-size:0.75em;">開始位置</label>
                     <input type="range" id="trim-offset" min="0" max="1" step="0.01" value="0.20" oninput="syncTrimInputs('offset', this.value)" disabled>
                     <div style="display:flex; align-items:center; gap:2px;">
                         <input type="number" id="num-trim-offset" min="0" max="2" step="0.01" value="0.20" onchange="syncTrimInputs('offset', this.value)" oninput="syncTrimInputs('offset', this.value)" class="num-input-box" disabled>
-                        <span style="font-size:0.72em;">s</span>
+                        <span style="font-size:0.75em;">s</span>
                     </div>
                 </div>
                 <div class="param-row" style="margin-top: 2px;">
-                    <label id="lbl-trim-end" style="width:75px; font-size:0.72em;">終了位置</label>
+                    <label id="lbl-trim-end" style="width:75px; font-size:0.75em;">終了位置</label>
                     <input type="range" id="trim-end" min="0.05" max="1.5" step="0.01" value="0.80" oninput="syncTrimInputs('end', this.value)" disabled>
                     <div style="display:flex; align-items:center; gap:2px;">
                         <input type="number" id="num-trim-end" min="0.05" max="3" step="0.01" value="0.80" onchange="syncTrimInputs('end', this.value)" oninput="syncTrimInputs('end', this.value)" class="num-input-box" disabled>
-                        <span style="font-size:0.72em;">s</span>
+                        <span style="font-size:0.75em;">s</span>
                     </div>
                 </div>
             </div>
@@ -439,29 +510,43 @@
         <div class="card">
             <h2 class="card-title">💬 おしゃべりメーカー</h2>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <span style="font-size:0.75em; font-weight:bold;">📝 スロット (最大10個)</span>
-                <button class="btn-util" onclick="addSentenceSlot()" style="font-size:0.7em; padding:2px 6px;">＋ 追加</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-size:0.8em; font-weight:bold;">📝 スロット (最大10個)</span>
+                <button class="btn-util" onclick="addSentenceSlot()" style="font-size:0.75em; padding:2px 8px;">＋ 追加</button>
             </div>
             <div class="sentence-tabs" id="sentence-tabs-container"></div>
 
-            <textarea id="talk-text" placeholder="ここに文章を入力。カタカナも読めます" oninput="currentSentenceData.text = this.value; syncIntonationNodes(true)"></textarea>
+            <textarea id="talk-text" placeholder="ここに文章を入力（ひらがな・カタカナ・ローマ字対応。「息」や「息1」と書くと息が入ります）" oninput="onTextInputChanged()"></textarea>
 
-            <div style="margin: 6px 0;">
-                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75em; font-weight:bold; margin-bottom:4px;">
-                    <span>📈 イントネーション <span style="font-size:0.65em; font-weight:normal; opacity:0.7;">(Wタップで初期化)</span></span>
-                    <button class="btn-util" onclick="resetIntonationGraph()" style="font-size:0.65em; padding:2px 6px;">リセット</button>
-                </div>
-                <div style="overflow-x:auto; width:100%; border-radius:8px; border:1px solid var(--border-color); background:var(--card-bg); -webkit-overflow-scrolling: touch;">
-                    <div id="intonation-canvas-wrapper" style="min-width:100%; width:100%;">
-                        <canvas id="intonation-canvas" style="height:80px; width:100%; cursor:pointer; display:block;"></canvas>
+            <div style="margin: 8px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8em; font-weight:bold; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+                    <span>📈 イントネーションピッチ <span style="font-size:0.7em; font-weight:normal; opacity:0.7;">(Wタップでリセット)</span></span>
+                    
+                    <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+                        <div class="pitch-mode-selector">
+                            <button id="mode-step-btn" class="pitch-mode-btn active" onclick="setPitchEditorMode('step')">📍 ステップ</button>
+                            <button id="mode-pen-btn" class="pitch-mode-btn" onclick="setPitchEditorMode('pen')">✏️ フリーペン</button>
+                        </div>
+                        <button class="btn-util" onclick="resetIntonationGraph()" style="font-size:0.7em; padding:2px 6px;">リセット</button>
                     </div>
+                </div>
+                
+                <div id="intonation-scroll-container" class="intonation-scroll-box" onscroll="updateIntonationScrollSlider()" style="width:100%; border-radius:8px; border:1px solid var(--border-color); background:var(--panel-bg);">
+                    <div id="intonation-canvas-wrapper" style="min-width:100%; width:100%;">
+                        <canvas id="intonation-canvas" style="height:140px; width:100%; cursor:crosshair; display:block; max-width:none !important;"></canvas>
+                    </div>
+                </div>
+
+                <!-- スライドバー1本化 -->
+                <div style="display:flex; align-items:center; gap:6px; margin-top:6px; background:var(--panel-bg); padding:4px 8px; border-radius:8px; border:1px solid var(--border-color);">
+                    <span style="font-size:0.75em; font-weight:bold; color:var(--primary); white-space:nowrap;">↔️ 横移動スライドバー:</span>
+                    <input type="range" id="intonation-scroll-slider" min="0" max="100" value="0" oninput="syncIntonationScroll(this.value)" style="flex:1; height:28px; accent-color:var(--primary); cursor:pointer;">
                 </div>
             </div>
 
             <!-- 声の微調整エリア -->
             <div class="param-group">
-                <div style="font-weight: bold; font-size: 0.75em; margin-bottom: 2px;">🎛️ パラメータ <span style="font-size:0.65em; font-weight:normal; opacity:0.7;">(Wタップで初期化)</span></div>
+                <div style="font-weight: bold; font-size: 0.8em; margin-bottom: 2px;">🎛️ パラメータ <span style="font-size:0.7em; font-weight:normal; opacity:0.7;">(Wタップで初期化)</span></div>
 
                 <div class="param-row">
                     <label id="lbl-pitch">ピッチシフト</label>
@@ -503,46 +588,82 @@
 
     <!-- フッター -->
     <footer class="app-footer">
-        <div style="font-weight: bold;">© ぷちボイス</div>
-        <div class="credit-text">コーディング: Gemini ｜ サイト提案: <a href="https://x.com/yourei_osirase" target="_blank">ゆーれい</a></div>
+        <div style="font-weight: bold;">&copy; ゆーれい</div>
+        <div class="credit-text">Coding: Gemini ｜ Site Suggestion: <a href="https://x.com/yourei_osirase" target="_blank" rel="noopener">ゆーれい</a></div>
     </footer>
+
+    <!-- 使い方・利用規約モーダル -->
+    <div class="modal-overlay" id="guide-modal" style="display:flex;">
+        <div class="modal-box">
+            <h3>✨ 使い方・利用規約</h3>
+            
+            <div class="guide-section">
+                <h4>🌸 使い方ガイド</h4>
+                ・<b>声の録音</b>：左パネルの各文字カードで「録音」ボタンを押すと、3秒カウントダウンの後に録音されます。ブレス（息1〜3）も録音可能です！<br>
+                ・<b>文章入力</b>：ひらがな、カタカナ、ローマ字を自動変換して喋らせます。<br>
+                ・<b>直感的なピッチ描画</b>：<br>
+                  - <b>📍 ステップ</b>：一文字ずつのピッチ高低を調整。<br>
+                  - <b>✏️ フリーペン</b>：キャンバス上をお絵描きドラッグして、グラフに縛られず自由でなめらかなピッチカーブを直接描けます！<br>
+                ・<b>喋らせる・保存</b>：音声の試聴とWAVファイル書き出しができます。
+            </div>
+
+            <div class="guide-section">
+                <h4>📜 利用規約</h4>
+                ・本ツールで生成した音声データは、商用・非商用問わずご自由にお使いいただけます。<br>
+                ・録音データはお使いのブラウザ内のみに保存され、外部へ送信されません。<br>
+                ・本ツールの利用による損害について開発者は責任を負いかねます。
+            </div>
+
+            <div class="guide-section">
+                <h4>✉️ お問い合わせ・連絡先</h4>
+                不具合の報告やご質問などのお問い合わせ：<br>
+                ・<b>ゆーれい</b>：<a href="https://x.com/yourei_osirase" target="_blank" rel="noopener">https://x.com/yourei_osirase</a>
+            </div>
+
+            <div style="text-align:center; margin-top:14px;">
+                <button class="btn-main btn-talk" onclick="closeGuideModal()" style="min-height:38px; width:100%;">了解しました！</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 連続録音用モーダル -->
     <div class="modal-overlay" id="recording-modal" style="display:none;">
-        <div class="modal-box">
-            <h3 style="margin:0; font-size:0.95em;">🚀 連続録音</h3>
-            <p style="font-size:0.75em; opacity:0.8; margin:3px 0;" id="modal-sub-info">声を出してください</p>
+        <div class="modal-box" style="text-align:center;">
+            <h3 style="margin:0; font-size:1em;">🚀 連続録音</h3>
+            <p style="font-size:0.8em; opacity:0.8; margin:4px 0;" id="modal-sub-info">声を出してください</p>
             
             <div class="modal-char" id="modal-char-disp">あ</div>
-            <div id="modal-status" style="font-weight:bold; color:var(--primary); font-size:0.8em;">準備中...</div>
+            <div id="modal-status" style="font-weight:bold; color:var(--primary); font-size:0.85em;">準備中...</div>
             
             <div class="modal-controls">
                 <button class="btn-util" id="btn-pause-rec" onclick="togglePauseContinuous()">⏸️ 一時停止</button>
                 <button class="btn-util" onclick="prevContinuousStep()">⏮️ 戻る</button>
                 <button class="btn-util" onclick="restartContinuousRecording()">🔄 最初から</button>
-                <button class="btn-util" style="color:#e74c3c; border-color:#ff7875;" onclick="stopContinuousRecording()">❌ 終了</button>
+                <button class="btn-util" style="color:var(--accent-red); border-color:var(--accent-red);" onclick="stopContinuousRecording()">❌ 終了</button>
             </div>
         </div>
     </div>
 
     <script>
         const phonemeCategories = {
-            "あ〜さ行": ["あ","い","う","え","お", "か","き","く","け","こ", "さ","し","す","せ","そ"],
-            "た〜ま行": ["た","ち","つ","て","と", "な","に","ぬ","ね","の", "は","ひ","ふ","へ","ほ", "ま","み","む","め","も"],
-            "や〜ん": ["や","ゆ","よ", "ら","り","る","れ","ろ", "わ","を","ん"],
-            "濁音・半濁音": ["が","ぎ","ぐ","げ","ご", "ざ","じ","ず","ぜ","ぞ", "だ","ぢ","づ","で","ど", "ば","び","ぶ","べ","ぼ", "ぱ","ぴ","ぷ","ぺ","ぽ"],
+            "あ〜さ行": ["息1", "息2", "息3", "あ", "い", "う", "え", "お", "か", "き", "く", "け", "こ", "さ", "し", "す", "せ", "そ"],
+            "た〜ま行": ["た", "ち", "つ", "て", "と", "な", "に", "ぬ", "ね", "の", "は", "ひ", "ふ", "へ", "ほ", "ま", "み", "む", "め", "も"],
+            "や〜ん": ["や", "ゆ", "よ", "ら", "り", "る", "れ", "ろ", "わ", "を", "ん"],
+            "濁音・半濁音": ["が", "ぎ", "ぐ", "げ", "ご", "ざ", "じ", "ず", "ぜ", "ぞ", "だ", "ぢ", "づ", "で", "ど", "ば", "び", "ぶ", "べ", "ぼ", "ぱ", "ぴ", "ぷ", "ぺ", "ぽ"],
             "拗音(しゃ等)": [
-                "きゃ","きゅ","きょ", "ぎゃ","ぎゅ","ぎょ",
-                "しゃ","しゅ","しょ", "じゃ","じゅ","じょ",
-                "ちゃ","ちゅ","ちょ",
-                "にゃ","にゅ","にょ",
-                "ひゃ","ひゅ","ひょ", "びゃ","びゅ","びょ", "ぴゃ","ぴゅ","ぴょ",
-                "みゃ","みゅ","みょ",
-                "りゃ","りゅ","りょ"
+                "きゃ", "きゅ", "きょ", "ぎゃ", "ぎゅ", "ぎょ",
+                "しゃ", "しゅ", "しょ", "じゃ", "じゅ", "じょ",
+                "ちゃ", "ちゅ", "ちょ",
+                "にゃ", "にゅ", "にょ",
+                "ひゃ", "ひゅ", "ひょ", "びゃ", "びゅ", "びょ", "ぴゃ", "ぴゅ", "ぴょ",
+                "みゃ", "みゅ", "みょ",
+                "りゃ", "りゅ", "りょ"
             ]
         };
 
         const allYouon = Object.values(phonemeCategories["拗音(しゃ等)"]);
+        const breathList = ["息1", "息2", "息3"];
+        const FREE_PITCH_RESOLUTION = 120;
 
         let audioCtx;
         let micStream;
@@ -551,12 +672,26 @@
         let selectedChar = null;
 
         let sentences = [
-            { text: "あたらしいぶんしょう", nodes: [0, 0, 0, 0, 0, 0, 0, 0, 0], params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, volume: 1.0 } }
+            createDefaultSentence()
         ];
         let currentSentenceIdx = 0;
         let currentSentenceData = sentences[0];
 
-        let intonationGraphScale = 1.0;
+        let intonationGraphScale = 1.8;
+        let pitchEditorMode = 'step';
+
+        function createDefaultSentence() {
+            return {
+                text: "こんにちわ",
+                nodes: [0, 0, 0, 0, 0],
+                freePitchCurve: new Array(FREE_PITCH_RESOLUTION).fill(0),
+                pitchMode: 'step',
+                params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, volume: 1.0 }
+            };
+        }
+
+        function openGuideModal() { document.getElementById("guide-modal").style.display = "flex"; }
+        function closeGuideModal() { document.getElementById("guide-modal").style.display = "none"; }
 
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
@@ -566,6 +701,16 @@
 
         function setColor(colorName) {
             document.documentElement.setAttribute('data-color', colorName);
+            drawIntonationGraph();
+            drawTrimWaveform();
+        }
+
+        function setPitchEditorMode(mode) {
+            pitchEditorMode = mode;
+            currentSentenceData.pitchMode = mode;
+            document.getElementById("mode-step-btn").classList.toggle("active", mode === 'step');
+            document.getElementById("mode-pen-btn").classList.toggle("active", mode === 'pen');
+            drawIntonationGraph();
         }
 
         async function initAudio() {
@@ -637,9 +782,10 @@
                 const item = voiceLibrary[char];
                 const isRecorded = !!item;
                 const isSelected = selectedChar === char;
+                const isBreath = breathList.includes(char);
 
                 const card = document.createElement("div");
-                card.className = `char-card ${isRecorded ? 'recorded' : ''} ${isSelected ? 'selected' : ''}`;
+                card.className = `char-card ${isRecorded ? 'recorded' : ''} ${isSelected ? 'selected' : ''} ${isBreath ? 'breath-card' : ''}`;
                 card.innerHTML = `
                     <div class="char-name">${char}</div>
                     <button id="rec-${char}" class="btn-mini btn-rec" onclick="record('${char}')">録音</button>
@@ -670,11 +816,7 @@
                 alert("文章スロットは最大10個までです。");
                 return;
             }
-            sentences.push({
-                text: "あたらしいぶんしょう",
-                nodes: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                params: { pitch: 0, speed: 0.20, smoothness: 20, tone: 0, volume: 1.0 }
-            });
+            sentences.push(createDefaultSentence());
             switchSentenceSlot(sentences.length - 1);
         }
 
@@ -683,7 +825,8 @@
             currentSentenceData = sentences[idx];
             document.getElementById("talk-text").value = currentSentenceData.text;
             applyParamsToUI(currentSentenceData.params);
-            syncIntonationNodes(true);
+            setPitchEditorMode(currentSentenceData.pitchMode || 'step');
+            syncIntonationNodes(false);
             renderSentenceTabs();
             saveToLocalStorage(true);
         }
@@ -718,6 +861,12 @@
             document.getElementById("val-volume").textContent = p.volume;
         }
 
+        function onTextInputChanged() {
+            currentSentenceData.text = document.getElementById("talk-text").value;
+            syncIntonationNodes(true);
+            renderSentenceTabs();
+        }
+
         let currentRecorder = null;
         let currentTimeoutId = null;
 
@@ -727,6 +876,15 @@
                 await initMic();
                 const recBtn = document.getElementById(`rec-${char}`);
                 if (recBtn && recBtn.disabled && !isContinuousRunning) return resolve(false);
+
+                if (!isContinuousRunning && recBtn) {
+                    recBtn.disabled = true;
+                    for (let c = 3; c > 0; c--) {
+                        recBtn.textContent = `⏱️ ${c}`;
+                        recBtn.style.background = "var(--accent-orange)";
+                        await new Promise(r => setTimeout(r, 650));
+                    }
+                }
 
                 const mediaRecorder = new MediaRecorder(micStream);
                 currentRecorder = mediaRecorder;
@@ -740,13 +898,18 @@
                     if (isHandled) return;
                     isHandled = true;
 
+                    if (recBtn) {
+                        recBtn.textContent = "録音";
+                        recBtn.style.background = "";
+                        recBtn.classList.remove("recording");
+                        recBtn.disabled = false;
+                    }
+
                     if (!isContinuousRunning && continuousActionRequested) {
-                        if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
                         return resolve(false);
                     }
 
                     if (continuousActionRequested) {
-                        if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
                         return resolve(false);
                     }
 
@@ -763,7 +926,6 @@
                         duration: parseFloat(initialDuration.toFixed(2))
                     };
 
-                    if (recBtn) { recBtn.textContent = "録音"; recBtn.classList.remove("recording"); recBtn.disabled = false; }
                     selectForTrim(char);
                     renderUI();
                     saveToLocalStorage(true);
@@ -771,7 +933,11 @@
                 };
 
                 mediaRecorder.start();
-                if (recBtn) { recBtn.textContent = "録音中"; recBtn.classList.add("recording"); recBtn.disabled = true; }
+                if (recBtn) {
+                    recBtn.textContent = "🎙️ 録音中";
+                    recBtn.style.background = "";
+                    recBtn.classList.add("recording");
+                }
                 
                 currentTimeoutId = setTimeout(() => { 
                     if (mediaRecorder.state === "recording") mediaRecorder.stop(); 
@@ -809,6 +975,16 @@
         }
 
         async function runContinuousLoop() {
+            if (isContinuousRunning && continuousIndex === 0) {
+                document.getElementById("modal-char-disp").textContent = "⏱️";
+                for (let c = 3; c > 0; c--) {
+                    if (!isContinuousRunning) return;
+                    document.getElementById("modal-status").textContent = `録音開始まで ${c} 秒...`;
+                    document.getElementById("modal-status").style.color = "var(--primary)";
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+
             while (isContinuousRunning && continuousIndex < continuousTargets.length) {
                 if (isContinuousPaused) {
                     document.getElementById("modal-status").textContent = "⏸️ 一時停止中";
@@ -842,10 +1018,7 @@
 
                 if (!recordedSuccess) continue;
 
-                document.getElementById("modal-status").textContent = "☕ 次の文字へ...";
-                document.getElementById("modal-status").style.color = "var(--accent-orange)";
-                
-                let pauseLeft = 1000;
+                let pauseLeft = 2000;
                 while (pauseLeft > 0 && isContinuousRunning && !continuousActionRequested) {
                     if (isContinuousPaused) {
                         document.getElementById("modal-status").textContent = "⏸️ 一時停止中";
@@ -853,6 +1026,8 @@
                         await new Promise(r => { continuousResolvePause = r; });
                         continuousResolvePause = null;
                     } else {
+                        document.getElementById("modal-status").textContent = `☕ 次の文字まで ${(pauseLeft / 1000).toFixed(1)} 秒...`;
+                        document.getElementById("modal-status").style.color = "var(--accent-orange)";
                         await new Promise(r => setTimeout(r, 100));
                         pauseLeft -= 100;
                     }
@@ -1082,7 +1257,8 @@
             const data = item.buffer.getChannelData(0);
             const totalDuration = item.buffer.duration;
 
-            ctx.fillStyle = "#ffb8c6";
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff6b81';
+            ctx.globalAlpha = 0.6;
             const step = Math.ceil(data.length / w);
             const amp = h / 2;
             for (let i = 0; i < w; i++) {
@@ -1094,27 +1270,28 @@
                 }
                 ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
             }
+            ctx.globalAlpha = 1.0;
 
             const startX = (item.offset / totalDuration) * w;
             const endX = Math.min(w, ((item.offset + item.duration) / totalDuration) * w);
 
-            ctx.fillStyle = "rgba(112, 161, 255, 0.3)";
+            ctx.fillStyle = "rgba(255, 107, 129, 0.25)";
             ctx.fillRect(startX, 0, endX - startX, h);
 
-            ctx.strokeStyle = "#a55eea"; ctx.lineWidth = 2.5;
+            ctx.strokeStyle = "#a29bfe"; ctx.lineWidth = 2.5;
             ctx.beginPath(); ctx.moveTo(startX, 0); ctx.lineTo(startX, h); ctx.stroke();
 
-            ctx.fillStyle = "#a55eea";
-            ctx.font = "bold 9px sans-serif";
+            ctx.fillStyle = "#a29bfe";
+            ctx.font = "bold 10px sans-serif";
             ctx.textAlign = "right";
-            ctx.fillText("開始位置", Math.max(45, startX - 4), 12);
+            ctx.fillText("開始位置", Math.max(50, startX - 4), 14);
 
-            ctx.strokeStyle = "#ff4757"; ctx.lineWidth = 2.5;
+            ctx.strokeStyle = "#ff5252"; ctx.lineWidth = 2.5;
             ctx.beginPath(); ctx.moveTo(endX, 0); ctx.lineTo(endX, h); ctx.stroke();
 
-            ctx.fillStyle = "#ff4757";
+            ctx.fillStyle = "#ff5252";
             ctx.textAlign = "left";
-            ctx.fillText("終了位置", Math.min(w - 45, endX + 4), h - 6);
+            ctx.fillText("終了位置", Math.min(w - 50, endX + 4), h - 8);
         }
 
         function setupWaveformEvents() {
@@ -1135,8 +1312,8 @@
 
                 if (e.type === 'mousedown' || e.type === 'touchstart') {
                     isDraggingWaveform = true;
-                    if (Math.abs(x - startX) < 20) dragTarget = 'start';
-                    else if (Math.abs(x - endX) < 20) dragTarget = 'end';
+                    if (Math.abs(x - startX) < 25) dragTarget = 'start';
+                    else if (Math.abs(x - endX) < 25) dragTarget = 'end';
                     else if (x < startX) dragTarget = 'start';
                     else dragTarget = 'end';
                 }
@@ -1159,9 +1336,71 @@
             canvas.addEventListener('mousedown', handlePointer);
             canvas.addEventListener('mousemove', (e) => { if (isDraggingWaveform) handlePointer(e); });
             window.addEventListener('mouseup', stopDrag);
-            canvas.addEventListener('touchstart', handlePointer, { passive: true });
-            canvas.addEventListener('touchmove', (e) => { if (isDraggingWaveform) handlePointer(e); }, { passive: true });
+            canvas.addEventListener('touchstart', (e) => { handlePointer(e); }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { if (isDraggingWaveform) { e.preventDefault(); handlePointer(e); } }, { passive: false });
             window.addEventListener('touchend', stopDrag);
+        }
+
+        function syncIntonationScroll(val) {
+            const container = document.getElementById("intonation-scroll-container");
+            if (!container) return;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            container.scrollLeft = (parseFloat(val) / 100) * maxScroll;
+        }
+
+        function updateIntonationScrollSlider() {
+            const container = document.getElementById("intonation-scroll-container");
+            const slider = document.getElementById("intonation-scroll-slider");
+            if (!container || !slider) return;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            if (maxScroll > 5) {
+                slider.disabled = false;
+                slider.value = (container.scrollLeft / maxScroll) * 100;
+            } else {
+                slider.disabled = true;
+                slider.value = 0;
+            }
+        }
+
+        function romajiToHiragana(str) {
+            if (!str) return "";
+            let s = str.toLowerCase();
+            
+            const romajiMap = [
+                ["kya","きゃ"],["kyu","きゅ"],["kyo","きょ"],
+                ["sha","しゃ"],["shu","しゅ"],["sho","しょ"],["shi","し"],
+                ["cha","ちゃ"],["chu","ちゅ"],["cho","ちょ"],["chi","ち"],["tsu","つ"],
+                ["nya","にゃ"],["nyu","にゅ"],["nyo","にょ"],
+                ["hya","ひゃ"],["hyu","ひゅ"],["hyo","ひょ"],
+                ["mya","みゃ"],["myu","みゅ"],["myo","みょ"],
+                ["rya","りゃ"],["ryu","りゅ"],["ryo","りょ"],
+                ["gya","ぎゃ"],["gyu","ぎゅ"],["gyo","ぎょ"],
+                ["ja","じゃ"],["ju","じゅ"],["jo","じょ"],["ji","じ"],
+                ["bya","びゃ"],["byu","びゅ"],["byo","びょ"],
+                ["pya","ぴゃ"],["pyu","ぴゅ"],["pyo","ぴょ"],
+                ["ka","か"],["ki","き"],["ku","く"],["ke","け"],["ko","こ"],
+                ["sa","さ"],["si","し"],["su","す"],["se","せ"],["so","そ"],
+                ["ta","た"],["ti","ち"],["tu","つ"],["te","て"],["to","と"],
+                ["na","な"],["ni","に"],["nu","ぬ"],["ne","ね"],["no","の"],
+                ["ha","は"],["hi","ひ"],["fu","ふ"],["hu","ふ"],["he","へ"],["ho","ほ"],
+                ["ma","ま"],["mi","み"],["mu","む"],["me","め"],["mo","も"],["m","ん"],
+                ["ya","や"],["yu","ゆ"],["yo","よ"],
+                ["ra","ら"],["ri","り"],["ru","る"],["re","れ"],["ro","ろ"],
+                ["wa","わ"],["wo","を"],["nn","ん"],["n","ん"],
+                ["ga","が"],["gi","ぎ"],["gu","ぐ"],["ge","げ"],["go","ご"],
+                ["za","ざ"],["zi","じ"],["zu","ず"],["ze","ぜ"],["zo","ぞ"],
+                ["da","だ"],["di","ぢ"],["du","づ"],["de","で"],["do","ど"],
+                ["ba","ば"],["bi","び"],["bu","ぶ"],["be","べ"],["bo","ぼ"],
+                ["pa","ぱ"],["pi","ぴ"],["pu","ぷ"],["pe","ぺ"],["po","ぽ"],
+                ["a","あ"],["i","い"],["u","う"],["e","え"],["o","お"]
+            ];
+
+            s = s.replace(/([bcdfghjklmnpqrstvwxyz])\1/g, 'っ$1');
+
+            for (let [roma, hira] of romajiMap) {
+                s = s.split(roma).join(hira);
+            }
+            return s;
         }
 
         function toHiragana(str) {
@@ -1193,22 +1432,41 @@
                 s = s.replace(new RegExp(k, 'g'), halfToFullMap[k]);
             }
 
-            return s.replace(/[\u30a1-\u30f6]/g, function(match) {
+            s = s.replace(/[\u30a1-\u30f6]/g, function(match) {
                 var chr = match.charCodeAt(0) - 0x60;
                 return String.fromCharCode(chr);
             });
+
+            return romajiToHiragana(s);
         }
 
         function parseText(text) {
             const result = [];
             let i = 0;
-            while (i < text.length) {
-                let char = text[i];
+            const convertedStr = toHiragana(text);
+
+            while (i < convertedStr.length) {
+                let matchedBreath = null;
+                for (let b of ["息1", "息2", "息3", "息", "ブレス"]) {
+                    if (convertedStr.substring(i).startsWith(b)) {
+                        matchedBreath = b;
+                        break;
+                    }
+                }
+
+                if (matchedBreath) {
+                    let targetBreath = matchedBreath;
+                    if (targetBreath === "息" || targetBreath === "ブレス") targetBreath = "息1";
+                    result.push({ type: 'voice', char: targetBreath, display: targetBreath, length: 1 });
+                    i += matchedBreath.length;
+                    continue;
+                }
+
+                let char = convertedStr[i];
                 
-                if (i < text.length - 1) {
-                    const two = text.substring(i, i + 2);
-                    const hTwo = toHiragana(two);
-                    if (allYouon.includes(hTwo)) {
+                if (i < convertedStr.length - 1) {
+                    const two = convertedStr.substring(i, i + 2);
+                    if (allYouon.includes(two)) {
                         char = two;
                         i += 2;
                     } else {
@@ -1236,8 +1494,7 @@
                 if ([" ", " ", "、", "。", "！", "？", "\n", "っ", "ッ", "ｯ"].includes(char)) {
                     result.push({ type: 'pause', char: char, length: 1 });
                 } else {
-                    const hChar = toHiragana(char);
-                    result.push({ type: 'voice', char: hChar, display: char, length: 1 });
+                    result.push({ type: 'voice', char: char, display: char, length: 1 });
                 }
             }
             return result;
@@ -1251,6 +1508,10 @@
             const text = currentSentenceData ? currentSentenceData.text : "";
             const tokens = parseVoicedTokens(text);
 
+            if (!currentSentenceData.freePitchCurve || currentSentenceData.freePitchCurve.length !== FREE_PITCH_RESOLUTION) {
+                currentSentenceData.freePitchCurve = new Array(FREE_PITCH_RESOLUTION).fill(0);
+            }
+
             if (tokens.length === 0) {
                 currentSentenceData.nodes = [];
             } else {
@@ -1262,7 +1523,13 @@
         }
 
         function resetIntonationGraph() {
-            syncIntonationNodes(true);
+            if (currentSentenceData) {
+                currentSentenceData.freePitchCurve = new Array(FREE_PITCH_RESOLUTION).fill(0);
+                if (currentSentenceData.nodes) {
+                    currentSentenceData.nodes.fill(0);
+                }
+            }
+            drawIntonationGraph();
             saveToLocalStorage(true);
         }
 
@@ -1274,7 +1541,7 @@
             const text = currentSentenceData ? currentSentenceData.text : "";
             const tokens = parseVoicedTokens(text);
 
-            const minWidthPerChar = 44;
+            const minWidthPerChar = 54;
             const parentContainer = wrapper.parentElement;
             const parentW = (parentContainer && parentContainer.clientWidth > 0) 
                 ? parentContainer.clientWidth 
@@ -1286,7 +1553,7 @@
 
             const ctx = canvas.getContext("2d");
             const dpr = window.devicePixelRatio || 1;
-            const h = 80;
+            const h = 140;
             
             canvas.width = Math.floor(calculatedWidth * dpr);
             canvas.height = Math.floor(h * dpr);
@@ -1295,65 +1562,121 @@
             const w = calculatedWidth;
             ctx.clearRect(0, 0, w, h);
 
+            ctx.strokeStyle = "rgba(255,255,255,0.05)";
+            ctx.lineWidth = 1;
+            for (let y = 15; y < h; y += 30) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            const centerY = h / 2;
+            ctx.strokeStyle = "rgba(255, 107, 129, 0.3)";
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(w, centerY); ctx.stroke();
+            ctx.setLineDash([]);
+
             if (tokens.length === 0) {
                 ctx.fillStyle = "#888";
                 ctx.font = "11px sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText("文章を入力するとイントネーションが表示されます", w / 2, h / 2 + 4);
+                updateIntonationScrollSlider();
                 return;
             }
 
-            const centerY = h / 2;
-            ctx.strokeStyle = "rgba(150,150,150,0.3)";
-            ctx.setLineDash([3, 3]);
-            ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(w, centerY); ctx.stroke();
-            ctx.setLineDash([]);
-
-            if (!currentSentenceData.nodes || currentSentenceData.nodes.length !== tokens.length) {
-                currentSentenceData.nodes = new Array(tokens.length).fill(0);
-            }
-
-            const points = [];
-            const padding = 30;
+            const padding = 36;
             const availableW = Math.max(50, w - padding * 2);
             const maxRange = 8;
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff6b81';
 
+            const charPoints = [];
             for (let i = 0; i < tokens.length; i++) {
                 const px = tokens.length === 1 ? w / 2 : padding + (i / (tokens.length - 1)) * availableW;
-                const pitchVal = (currentSentenceData.nodes && typeof currentSentenceData.nodes[i] === 'number') ? currentSentenceData.nodes[i] : 0;
-                const py = centerY - ((pitchVal / maxRange) * (h / 2 - 14) * intonationGraphScale);
-                points.push({ x: px, y: py, char: tokens[i].display, val: pitchVal });
+                charPoints.push(px);
+
+                ctx.strokeStyle = "rgba(255,255,255,0.08)";
+                ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
             }
 
-            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#ff758c';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
+            if (pitchEditorMode === 'pen') {
+                const curve = currentSentenceData.freePitchCurve || new Array(FREE_PITCH_RESOLUTION).fill(0);
+                ctx.strokeStyle = primaryColor;
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
 
-            if (points.length === 1) {
-                ctx.moveTo(0, points[0].y); 
-                ctx.lineTo(w, points[0].y);
-            } else {
-                ctx.moveTo(0, points[0].y);
-                ctx.lineTo(points[0].x, points[0].y);
-                for (let i = 1; i < points.length; i++) {
-                    ctx.lineTo(points[i].x, points[i].y);
+                ctx.beginPath();
+                for (let i = 0; i < curve.length; i++) {
+                    const cx = (i / (curve.length - 1)) * w;
+                    const pitchVal = curve[i];
+                    const cy = centerY - ((pitchVal / maxRange) * (h / 2 - 20));
+                    if (i === 0) ctx.moveTo(cx, cy);
+                    else ctx.lineTo(cx, cy);
                 }
-                ctx.lineTo(w, points[points.length - 1].y);
+                ctx.stroke();
+
+                for (let i = 0; i < tokens.length; i++) {
+                    const px = charPoints[i];
+                    const curveIdx = Math.round((px / w) * (curve.length - 1));
+                    const pitchVal = curve[Math.max(0, Math.min(curve.length - 1, curveIdx))];
+                    const py = centerY - ((pitchVal / maxRange) * (h / 2 - 20));
+
+                    ctx.fillStyle = primaryColor;
+                    ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+
+                    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#e8ecf4';
+                    ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+                    ctx.fillText(tokens[i].display, px, py < centerY ? py - 10 : py + 18);
+                }
+
+            } else {
+                if (!currentSentenceData.nodes || currentSentenceData.nodes.length !== tokens.length) {
+                    currentSentenceData.nodes = new Array(tokens.length).fill(0);
+                }
+
+                const points = [];
+                for (let i = 0; i < tokens.length; i++) {
+                    const px = charPoints[i];
+                    const pitchVal = currentSentenceData.nodes[i] || 0;
+                    const py = centerY - ((pitchVal / maxRange) * (h / 2 - 20) * intonationGraphScale);
+                    points.push({ x: px, y: py, char: tokens[i].display, val: pitchVal });
+                }
+
+                ctx.strokeStyle = primaryColor;
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                if (points.length === 1) {
+                    ctx.beginPath(); ctx.moveTo(0, points[0].y); ctx.lineTo(w, points[0].y); ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(0, points[0].y);
+                    ctx.lineTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    ctx.lineTo(w, points[points.length - 1].y);
+                    ctx.stroke();
+                }
+
+                points.forEach((p) => {
+                    ctx.fillStyle = primaryColor;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 5.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
+
+                    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#e8ecf4';
+                    ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+                    ctx.fillText(p.char, p.x, p.y < centerY ? p.y - 10 : p.y + 18);
+                });
             }
-            ctx.stroke();
 
-            points.forEach((p) => {
-                ctx.fillStyle = ctx.strokeStyle;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
-                ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
-
-                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#4a4a4a';
-                ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center";
-                ctx.fillText(p.char, p.x, p.y < centerY ? p.y - 7 : p.y + 14);
-            });
+            setTimeout(updateIntonationScrollSlider, 0);
         }
 
         let activeNodeIdx = -1;
+        let isPenDrawing = false;
+        let lastPenX = 0;
+        let lastPenY = 0;
 
         function setupIntonationEvents() {
             const canvas = document.getElementById("intonation-canvas");
@@ -1372,67 +1695,81 @@
                 const w = rect.width;
                 const h = rect.height;
                 const centerY = h / 2;
-                const padding = 30;
+                const padding = 36;
                 const availableW = Math.max(50, w - padding * 2);
                 const maxRange = 8;
 
-                if (e.type === 'mousedown' || e.type === 'touchstart') {
-                    let minDist = Infinity;
-                    let closest = -1;
-                    for (let i = 0; i < tokens.length; i++) {
-                        const px = tokens.length === 1 ? w / 2 : padding + (i / (tokens.length - 1)) * availableW;
-                        const dist = Math.abs(x - px);
-                        if (dist < minDist) { minDist = dist; closest = i; }
+                if (pitchEditorMode === 'step') {
+                    if (e.type === 'mousedown' || e.type === 'touchstart') {
+                        let minDist = Infinity;
+                        let closest = -1;
+                        for (let i = 0; i < tokens.length; i++) {
+                            const px = tokens.length === 1 ? w / 2 : padding + (i / (tokens.length - 1)) * availableW;
+                            const dist = Math.abs(x - px);
+                            if (dist < minDist) { minDist = dist; closest = i; }
+                        }
+                        if (minDist < 50) activeNodeIdx = closest;
                     }
-                    if (minDist < 45) activeNodeIdx = closest;
-                }
 
-                if (activeNodeIdx !== -1 && activeNodeIdx < tokens.length) {
-                    const deltaY = centerY - y;
-                    let pitchVal = (deltaY / ((h / 2 - 14) * intonationGraphScale)) * maxRange;
-                    pitchVal = Math.max(-8, Math.min(8, pitchVal));
-                    currentSentenceData.nodes[activeNodeIdx] = parseFloat(pitchVal.toFixed(1));
-                    drawIntonationGraph();
+                    if (activeNodeIdx !== -1 && activeNodeIdx < tokens.length) {
+                        const deltaY = centerY - y;
+                        let pitchVal = (deltaY / ((h / 2 - 20) * intonationGraphScale)) * maxRange;
+                        pitchVal = Math.max(-8, Math.min(8, pitchVal));
+                        currentSentenceData.nodes[activeNodeIdx] = parseFloat(pitchVal.toFixed(2));
+                        drawIntonationGraph();
+                    }
+                } else if (pitchEditorMode === 'pen') {
+                    if (e.type === 'mousedown' || e.type === 'touchstart') {
+                        isPenDrawing = true;
+                        lastPenX = x;
+                        lastPenY = y;
+                    }
+
+                    if (isPenDrawing) {
+                        const curve = currentSentenceData.freePitchCurve;
+                        const res = curve.length;
+
+                        const applyPoint = (px, py) => {
+                            const idx = Math.max(0, Math.min(res - 1, Math.round((px / w) * (res - 1))));
+                            const deltaY = centerY - py;
+                            let pitchVal = (deltaY / (h / 2 - 20)) * maxRange;
+                            pitchVal = Math.max(-8, Math.min(8, pitchVal));
+                            curve[idx] = parseFloat(pitchVal.toFixed(2));
+                        };
+
+                        const dist = Math.hypot(x - lastPenX, y - lastPenY);
+                        const steps = Math.max(1, Math.ceil(dist / 2));
+                        for (let i = 0; i <= steps; i++) {
+                            const interpX = lastPenX + (x - lastPenX) * (i / steps);
+                            const interpY = lastPenY + (y - lastPenY) * (i / steps);
+                            applyPoint(interpX, interpY);
+                        }
+
+                        lastPenX = x;
+                        lastPenY = y;
+                        drawIntonationGraph();
+                    }
                 }
             };
 
             const handleDoubleClick = (e) => {
-                const tokens = parseVoicedTokens(currentSentenceData.text);
-                if (tokens.length === 0) return;
-
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const w = rect.width;
-                const padding = 30;
-                const availableW = Math.max(50, w - padding * 2);
-
-                let minDist = Infinity;
-                let closest = -1;
-                for (let i = 0; i < tokens.length; i++) {
-                    const px = tokens.length === 1 ? w / 2 : padding + (i / (tokens.length - 1)) * availableW;
-                    const dist = Math.abs(x - px);
-                    if (dist < minDist) { minDist = dist; closest = i; }
-                }
-
-                if (minDist < 35 && closest !== -1) {
-                    currentSentenceData.nodes[closest] = 0;
-                    drawIntonationGraph();
-                    saveToLocalStorage(true);
-                }
+                resetIntonationGraph();
             };
 
             const stopDrag = () => { 
-                if (activeNodeIdx !== -1) {
+                if (activeNodeIdx !== -1 || isPenDrawing) {
                     saveToLocalStorage(true);
                 }
                 activeNodeIdx = -1; 
+                isPenDrawing = false;
             };
+
             canvas.addEventListener('mousedown', handlePointer);
-            canvas.addEventListener('mousemove', (e) => { if (activeNodeIdx !== -1) handlePointer(e); });
+            canvas.addEventListener('mousemove', (e) => { handlePointer(e); });
             window.addEventListener('mouseup', stopDrag);
             canvas.addEventListener('dblclick', handleDoubleClick);
-            canvas.addEventListener('touchstart', handlePointer, { passive: true });
-            canvas.addEventListener('touchmove', (e) => { if (activeNodeIdx !== -1) handlePointer(e); }, { passive: true });
+            canvas.addEventListener('touchstart', (e) => { handlePointer(e); }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handlePointer(e); }, { passive: false });
             window.addEventListener('touchend', stopDrag);
         }
 
@@ -1444,13 +1781,14 @@
                 'ば':'は','び':'ひ','ぶ':'ふ','べ':'へ','ぼ':'ほ',
                 'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ',
                 'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お',
-                'ゃ':'や','ゅ':'ゆ','ょ':'よ','ゔ':'う'
+                'ゃ':'や','ゅ':'ゆ','ょ':'よ','ゔ':'う',
+                '息':'息1','ブレス':'息1','息2':'息1','息3':'息1'
             };
             const h = toHiragana(c);
             return map[h] || map[c] || 'あ';
         }
 
-        function scheduleSpeechNode(ctx, destination, char, startTime, playDuration, opts, nodeIdx) {
+        function scheduleSpeechNode(ctx, destination, char, startTime, playDuration, opts, voicedIndex, progressRatio) {
             let item = voiceLibrary[char];
             if (!item) item = voiceLibrary[fallbackChar(char)];
             if (!item) return;
@@ -1459,11 +1797,28 @@
             const src = ctx.createBufferSource();
             src.buffer = trimmedBuf;
 
-            const customShift = (currentSentenceData.nodes && currentSentenceData.nodes[nodeIdx] !== undefined) ? currentSentenceData.nodes[nodeIdx] : 0;
-            const nextShift = (currentSentenceData.nodes && currentSentenceData.nodes[nodeIdx + 1] !== undefined) ? currentSentenceData.nodes[nodeIdx + 1] : customShift;
+            const isBreath = breathList.includes(char);
+            
+            let customShift = 0;
+            let nextShift = 0;
 
-            const startRate = Math.pow(2, (opts.pitch + customShift) / 12);
-            const endRate = Math.pow(2, (opts.pitch + nextShift) / 12);
+            if (!isBreath) {
+                if (pitchEditorMode === 'pen' && currentSentenceData.freePitchCurve) {
+                    const curve = currentSentenceData.freePitchCurve;
+                    const res = curve.length;
+                    const idx1 = Math.max(0, Math.min(res - 1, Math.floor(progressRatio * (res - 1))));
+                    const idx2 = Math.max(0, Math.min(res - 1, Math.ceil((progressRatio + 0.05) * (res - 1))));
+                    customShift = curve[idx1] || 0;
+                    nextShift = curve[idx2] || customShift;
+                } else if (currentSentenceData.nodes) {
+                    customShift = currentSentenceData.nodes[voicedIndex] !== undefined ? currentSentenceData.nodes[voicedIndex] : 0;
+                    nextShift = currentSentenceData.nodes[voicedIndex + 1] !== undefined ? currentSentenceData.nodes[voicedIndex + 1] : customShift;
+                }
+            }
+
+            const basePitch = isBreath ? 0 : opts.pitch;
+            const startRate = Math.pow(2, (basePitch + customShift) / 12);
+            const endRate = Math.pow(2, (basePitch + nextShift) / 12);
 
             src.playbackRate.setValueAtTime(startRate, startTime);
             if (startRate !== endRate) {
@@ -1471,7 +1826,7 @@
             }
 
             let lastNode = src;
-            if (opts.tone !== 0) {
+            if (opts.tone !== 0 && !isBreath) {
                 const filter = ctx.createBiquadFilter();
                 if (opts.tone > 0) { filter.type = "peaking"; filter.frequency.value = 3200; filter.gain.value = opts.tone * 1.2; }
                 else { filter.type = "lowpass"; filter.frequency.value = Math.max(500, 3500 + opts.tone * 250); }
@@ -1510,6 +1865,7 @@
             const tokens = parseText(text);
             const opts = currentSentenceData.params;
 
+            const totalVoicedCount = tokens.filter(t => t.type === 'voice').length;
             let currentTime = audioCtx.currentTime + 0.05;
             let voicedIndex = 0;
             const overlapTime = (opts.speed * 0.45) * (opts.smoothness / 100);
@@ -1526,7 +1882,8 @@
                 }
 
                 const playDuration = opts.speed * token.length;
-                scheduleSpeechNode(audioCtx, audioCtx.destination, token.char, currentTime, playDuration, opts, voicedIndex);
+                const progressRatio = totalVoicedCount > 1 ? (voicedIndex / (totalVoicedCount - 1)) : 0;
+                scheduleSpeechNode(audioCtx, audioCtx.destination, token.char, currentTime, playDuration, opts, voicedIndex, progressRatio);
                 currentTime += Math.max(0.02, playDuration - overlapTime);
                 voicedIndex++;
             });
@@ -1560,6 +1917,7 @@
             const offlineCtx = new OfflineAudioContext(1, Math.ceil(sampleRate * (totalDuration + 0.2)), sampleRate);
             let currentTime = 0.05;
             let voicedIndex = 0;
+            const totalVoicedCount = tokens.filter(t => t.type === 'voice').length;
 
             tokens.forEach((token) => {
                 if (token.type === 'pause') {
@@ -1573,7 +1931,8 @@
                 }
 
                 const playDuration = opts.speed * token.length;
-                scheduleSpeechNode(offlineCtx, offlineCtx.destination, token.char, currentTime, playDuration, opts, voicedIndex);
+                const progressRatio = totalVoicedCount > 1 ? (voicedIndex / (totalVoicedCount - 1)) : 0;
+                scheduleSpeechNode(offlineCtx, offlineCtx.destination, token.char, currentTime, playDuration, opts, voicedIndex, progressRatio);
                 currentTime += Math.max(0.02, playDuration - overlapTime);
                 voicedIndex++;
             });
@@ -1615,7 +1974,6 @@
             return new Blob([arrayBuffer], { type: 'audio/wav' });
         }
 
-        // 高速化用のメモリ上同期Base64変換関数
         function bufferToBase64Wav(buffer) {
             const numChannels = 1, sampleRate = buffer.sampleRate, format = 1, bitDepth = 16;
             const samples = buffer.getChannelData(0);
@@ -1666,29 +2024,20 @@
             }
             try { 
                 localStorage.setItem("puchivoice_saved_library", JSON.stringify(saveObj));
-                localStorage.setItem("puchivoice_saved_sentences", JSON.stringify(sentences));
             } catch (e) {
                 console.warn("Storage save limit error:", e);
                 if (!silent) {
-                    alert("⚠️ ブラウザの容量制限（約5MB）を超えたため、自動ローカル保存に失敗しました。「📤 保存」ボタンからJSONファイルで書き出してください。");
+                    alert("⚠️ ブラウザの容量制限を超えたため保存に失敗しました。「📤 保存」ボタンからファイル保存してください。");
                 }
             }
         }
 
         async function loadFromLocalStorage() {
             const savedLib = localStorage.getItem("puchivoice_saved_library");
-            const savedSentences = localStorage.getItem("puchivoice_saved_sentences");
 
-            if (savedSentences) {
-                try {
-                    const parsedS = JSON.parse(savedSentences);
-                    if (Array.isArray(parsedS) && parsedS.length > 0) {
-                        sentences = parsedS;
-                        currentSentenceIdx = 0;
-                        currentSentenceData = sentences[0];
-                    }
-                } catch (e) {}
-            }
+            sentences = [createDefaultSentence()];
+            currentSentenceIdx = 0;
+            currentSentenceData = sentences[0];
 
             if (!savedLib) return false;
             try {
@@ -1710,8 +2059,8 @@
                     };
                 }
                 renderUI();
-                switchSentenceSlot(currentSentenceIdx);
-                return true;
+                switchSentenceSlot(0);
+                return Object.keys(voiceLibrary).length > 0;
             } catch (e) { return false; }
         }
 
@@ -1746,10 +2095,11 @@
                     if (data.name) document.getElementById("lib-name").value = data.name;
 
                     await initAudio();
-                    voiceLibrary = {}; selectedChar = null;
+                    voiceLibrary = {};
+                    selectedChar = null;
                     for (const char in data.samples) {
                         const sampleInfo = data.samples[char];
-                        const res = await fetch(sampleInfo.data || sampleInfo);
+                        const res = await fetch(sampleInfo.data);
                         const ab = await res.arrayBuffer();
                         const audioBuffer = await audioCtx.decodeAudioData(ab);
                         voiceLibrary[char] = {
@@ -1760,45 +2110,22 @@
                     }
                     renderUI();
                     saveToLocalStorage(true);
-                    alert(`ボイスライブラリを読み込みました！`);
-                } catch (err) { alert("読み込みに失敗しました。"); }
+                    alert("📥 ボイスライブラリを読み込みました！");
+                } catch (err) {
+                    alert("⚠️ ライブラリファイルの読み込みに失敗しました。");
+                }
             };
             reader.readAsText(file);
         }
 
-        window.onload = async () => {
-            renderUI();
-            updateParamDisp();
+        window.addEventListener('DOMContentLoaded', async () => {
+            openGuideModal();
+            setupAllResetHandlers();
             setupWaveformEvents();
             setupIntonationEvents();
-            setupAllResetHandlers();
-            
+            renderUI();
             await loadFromLocalStorage();
-            
-            switchSentenceSlot(currentSentenceIdx);
-            syncIntonationNodes(true);
-
-            const wrapper = document.getElementById("intonation-canvas-wrapper");
-            if (wrapper && window.ResizeObserver) {
-                const ro = new ResizeObserver(() => {
-                    requestAnimationFrame(() => {
-                        drawIntonationGraph();
-                        drawTrimWaveform();
-                    });
-                });
-                ro.observe(wrapper.parentElement || wrapper);
-            }
-
-            setTimeout(() => {
-                syncIntonationNodes(true);
-                drawTrimWaveform();
-            }, 100);
-        };
-
-        window.onresize = () => {
-            drawTrimWaveform();
-            drawIntonationGraph();
-        };
+        });
     </script>
 </body>
 </html>
