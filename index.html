@@ -163,6 +163,14 @@ select.text-in{padding-right:4px}
 .app-footer{text-align:center;margin-top:20px;padding:12px;font-size:.75rem;color:var(--text-sub);border-top:1px dashed var(--border);width:100%;max-width:1400px;display:flex;flex-direction:column;gap:4px;align-items:center}
 .mobile-nav{display:none;position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);gap:6px;padding:5px;background:var(--card);border:1px solid var(--border);border-radius:999px;box-shadow:var(--shadow);z-index:50}
 @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.out-level-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ok),var(--primary));transition:width .05s}
+.out-level-fill.clip{background:var(--rec)}
+details.block>summary{cursor:pointer;font-weight:800;font-size:.84rem;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:6px}
+details.block>summary::-webkit-details-marker{display:none}
+details.block>summary::after{content:"▾";color:var(--text-sub)}
+details.block[open]>summary::after{content:"▴"}
+.mix-group{font-size:.76rem;font-weight:800;color:var(--primary);margin:12px 0 2px;padding-top:8px;border-top:1px dashed var(--border)}
+.mix-group:first-child{border-top:none;margin-top:6px;padding-top:0}
 
 @media (max-width:900px){
   .container{grid-template-columns:1fr}
@@ -193,7 +201,7 @@ select.text-in{padding-right:4px}
   <div class="header-actions">
     <span class="save-ind" id="save-ind">💾 自動保存</span>
     <button class="btn btn-sm" onclick="openModal('guide-modal')">📖 使い方</button>
-    <button class="btn btn-sm" onclick="openModal('theme-modal')">🎨 推しカラー</button>
+    <button class="btn btn-sm" onclick="openModal('theme-modal')">🎨 カラー</button>
     <button class="btn btn-sm" onclick="openModal('settings-modal')">⚙️ 設定</button>
   </div>
 </header>
@@ -260,12 +268,33 @@ select.text-in{padding-right:4px}
         <input type="range" id="trim-end" min="0" max="1" step="0.01" value="0" disabled>
         <input type="number" id="num-trim-end" class="num-input" min="0" step="0.01" value="0" disabled><span class="unit">s</span>
       </div>
+      <div class="param-row">
+        <label style="width:70px">音量補正</label>
+        <input type="range" id="trim-gain" min="-12" max="12" step="0.5" value="0" disabled>
+        <input type="number" id="num-trim-gain" class="num-input" min="-12" max="12" step="0.5" value="0" disabled><span class="unit">dB</span>
+      </div>
+      <p class="hint" id="trim-level" style="margin:0 0 4px"></p>
       <div class="row" style="margin-top:6px">
         <button class="btn btn-sm" onclick="autoTrimSelected()">✨ この音を自動トリム</button>
         <button class="btn btn-sm" onclick="autoTrimAll()">✨ 全部を自動トリム</button>
         <button class="btn btn-sm btn-danger" onclick="deleteSelectedSample()">🗑 この音を削除</button>
       </div>
     </div>
+
+    <details class="block" id="mixer">
+      <summary>🎚 ミキサー（このボイスの音量バランス）</summary>
+      <p class="hint">録音した声の大きさのバラつきを整えます。ボイスごとに設定が保存され、再生と書き出しの両方に反映されます。</p>
+      <div class="row" style="margin:6px 0">
+        <button class="btn btn-sm btn-primary" onclick="levelAllSamples()">🎚 録音の音量を自動で揃える</button>
+        <button class="btn btn-sm" onclick="resetSampleGains()">↺ 補正をリセット</button>
+      </div>
+      <div class="chips" id="mix-presets" style="margin-bottom:4px"></div>
+      <div class="row" style="margin:6px 0">
+        <input type="checkbox" id="mix-bypass" style="width:18px;height:18px;accent-color:var(--primary)" onchange="setMixBypass(this.checked)">
+        <label for="mix-bypass" style="font-size:.76rem;font-weight:700;cursor:pointer">🔍 聴き比べ：ミキサーの処理を一時的にオフ</label>
+      </div>
+      <div id="mix-rows"></div>
+    </details>
   </section>
 
   <!-- ================= 右：おしゃべりメーカー ================= -->
@@ -350,6 +379,10 @@ select.text-in{padding-right:4px}
       <button class="btn btn-lg btn-primary" id="btn-play" onclick="speakText()">▶ 喋らせる</button>
       <button class="btn btn-lg" id="btn-stop" onclick="stopPlayback()" disabled style="flex:0 0 auto">■ 停止</button>
     </div>
+    <div class="row" style="margin-top:10px">
+      <span style="font-size:.72rem;font-weight:800">🔊 出力</span>
+      <div class="meter"><div class="out-level-fill"></div></div>
+    </div>
     <div class="action-buttons" style="margin-top:8px">
       <button class="btn btn-sm" onclick="speakAll()">▶▶ 全スロット連続再生</button>
       <button class="btn btn-sm" onclick="speakFromCurrent()">▶▶ ここから再生</button>
@@ -366,7 +399,6 @@ select.text-in{padding-right:4px}
 </nav>
 
 <footer class="app-footer">
-  <div style="font-weight:700">&copy; ゆーれい</div>
   <div>Coding: Gemini ｜ Site Suggestion: <a href="https://x.com/yourei_osirase" target="_blank" rel="noopener">ゆーれい</a></div>
 </footer>
 
@@ -386,7 +418,8 @@ select.text-in{padding-right:4px}
       ・<b>🗣 話す人</b>：ボイスを最大4つ作って掛け合いができます。<br>
       ・<b>▶▶ 全スロット連続再生</b>／<b>💾 結合して保存</b>：セリフ全体を1本のWAVに。設定でSRT字幕も同時出力できます。<br>
       ・<b>アクセント型</b>（平板・頭高・疑問など）と<b>抑揚の強さ</b>で、棒読み〜感情豊かまで調整。<br>
-      ・<b>声の調整プリセット</b>：まったり解説風／はやくち／ささやき など。
+      ・<b>声の調整プリセット</b>：まったり解説風／はやくち／ささやき など。<br>
+      ・<b>🎚 ミキサー</b>：音量の自動調整（ライダー）・コンプレッサー・ディエッサー（サ行の刺さり対策）・ローカットで、録音のバラつきを整えます。「聴き比べ」で効果を確認できます。
     </div>
     <div class="guide-section">
       <h4>📜 利用規約</h4>
@@ -403,10 +436,10 @@ select.text-in{padding-right:4px}
   </div>
 </div>
 
-<!-- ============ 推しカラー ============ -->
+<!-- ============ カラー ============ -->
 <div class="modal-overlay" id="theme-modal">
   <div class="modal-box">
-    <h3>🎨 推しカラー</h3>
+    <h3>🎨 カラー</h3>
     <div class="row" style="justify-content:center;margin-bottom:12px">
       <div class="seg">
         <button id="theme-light-btn" onclick="setTheme('light')">☀️ ライト</button>
@@ -418,7 +451,7 @@ select.text-in{padding-right:4px}
       <label for="custom-color" style="font-size:.8rem;font-weight:800">🖌 自由に選ぶ</label>
       <input type="color" id="custom-color" value="#f08fab" style="width:56px;height:38px;border:none;background:none;cursor:pointer" oninput="setColor(this.value)">
     </div>
-    <p class="hint" style="text-align:center">背景やボタンの色が、選んだ推しカラーに合わせてやさしく変わります。</p>
+    <p class="hint" style="text-align:center">背景やボタンの色が、選んだカラーに合わせてやさしく変わります。</p>
     <div style="text-align:center;margin-top:12px"><button class="btn btn-primary" onclick="closeModal('theme-modal')">とじる</button></div>
   </div>
 </div>
@@ -435,6 +468,7 @@ select.text-in{padding-right:4px}
     <div class="set-row"><span>「ー」を伸ばす時に母音をループ</span><input type="checkbox" id="set-loop"></div>
     <div class="set-row"><span>スロット間の間 <b id="v-gap">0.4</b>秒</span><input type="range" id="set-gap" min="0" max="3" step="0.1"></div>
     <div class="set-row"><span>結合保存時にSRT字幕も出力</span><input type="checkbox" id="set-srt"></div>
+    <div class="set-row"><span>書き出し時に音量を整える（ピーク-1dB）</span><input type="checkbox" id="set-normexp"></div>
     <div class="row" style="margin-top:12px;justify-content:center">
       <button class="btn btn-sm btn-danger" onclick="resetEverything()">⚠️ すべて初期化</button>
       <button class="btn btn-primary" onclick="closeModal('settings-modal')">とじる</button>
@@ -551,8 +585,7 @@ const ACCENT_PRESETS = {
   question:  {label:"疑問（語尾上げ）",        fn:n=>Array.from({length:n},(_,i)=> i===n-1 ? 5 : (i===n-2 ? 2.5 : 0))},
   fall:      {label:"語尾下げ（なだらか）",    fn:n=>Array.from({length:n},(_,i)=> 2-(i/Math.max(1,n-1))*5)},
   genki:     {label:"元気（ぴょんぴょん）",    fn:n=>Array.from({length:n},(_,i)=> i%2===0 ? 3 : -1)},
-  yukkuri:   {label:"まったり（ゆるい波）",  fn:n=>Array.from({length:n},(_,i)=> Math.round(Math.sin(i*0.9)*3)/2)},
-  random:    {label:"ゆらぎ（ランダム）",      fn:n=>Array.from({length:n},()=> Math.round((Math.random()*4-2)*2)/2)}
+  yukkuri:   {label:"まったり（ゆるい波）",  fn:n=>Array.from({length:n},(_,i)=> Math.round(Math.sin(i*0.9)*3)/2)}
 };
 
 /* =====================================================================
@@ -564,7 +597,7 @@ let sentences = [], curSentenceIdx = 0;
 let dict = [], dictVer = 0;
 let settings = {
   theme:"light", color:"#f08fab", recMs:1200, countdown:3,
-  autoTrim:true, normalize:true, loopLong:true, slotGap:0.4, exportSrt:false, guideSeen:false
+  autoTrim:true, normalize:true, loopLong:true, slotGap:0.4, exportSrt:false, normExport:true, guideSeen:false
 };
 let currentTab = "あ〜さ行";
 let selectedChar = null;
@@ -723,8 +756,8 @@ async function saveProject(){
     const data = {
       version:2, savedAt:Date.now(), curVoiceIdx, curSentenceIdx, dict,
       sentences: sentences.map(serializeSentence),
-      voices: voices.map(v => ({ id:v.id, name:v.name, icon:v.icon,
-        samples: Object.fromEntries(Object.entries(v.samples).map(([c,s]) => [c,{ wav:s.wav, offset:s.offset, duration:s.duration }])) }))
+      voices: voices.map(v => ({ id:v.id, name:v.name, icon:v.icon, mix:v.mix,
+        samples: Object.fromEntries(Object.entries(v.samples).map(([c,s]) => [c,{ wav:s.wav, offset:s.offset, duration:s.duration, gain:s.gain || 0 }])) }))
     };
     await idbSet('project', data);
     setSaveStatus('saved');
@@ -814,7 +847,7 @@ function dataUrlToArrayBuffer(str){
   return bytes.buffer;
 }
 async function decodeWav(ab){ return await getCtx().decodeAudioData(ab.slice(0)); }
-function makeSample(buffer, offset, duration){ return { buffer, offset, duration, wav: bufferToWavArrayBuffer(buffer) }; }
+function makeSample(buffer, offset, duration){ return { buffer, offset, duration, gain:0, wav: bufferToWavArrayBuffer(buffer) }; }
 function downloadBlob(blob, name){
   const url = URL.createObjectURL(blob); const a = document.createElement('a');
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -824,7 +857,7 @@ function downloadBlob(blob, name){
 /* =====================================================================
    ボイス管理
    ===================================================================== */
-function createVoice(name, icon){ return { id:uid(), name:name || 'ボイス', icon:icon || '🎙️', samples:{} }; }
+function createVoice(name, icon){ return { id:uid(), name:name || 'ボイス', icon:icon || '🎙️', samples:{}, mix:defaultMix() }; }
 
 function addVoice(){
   if (voices.length >= MAX_VOICES) return toast(`ボイスは最大${MAX_VOICES}つまでです`, 'error');
@@ -872,7 +905,7 @@ function onSentenceVoiceChange(id){
 /* =====================================================================
    ライブラリUI
    ===================================================================== */
-function renderLibrary(){ syncVoiceInputs(); renderVoiceChips(); renderTabs(); renderGrid(); updateTrimPanelUI(); updateReading(); }
+function renderLibrary(){ syncVoiceInputs(); renderVoiceChips(); renderTabs(); renderGrid(); updateTrimPanelUI(); applyMixToUI(); updateReading(); }
 
 function renderTabs(){
   const box = $('tab-container'); box.innerHTML = '';
@@ -938,7 +971,7 @@ function deleteSelectedSample(){
 /* ---------- トリム ---------- */
 function updateTrimPanelUI(){
   const v = curVoice(); const item = selectedChar && v.samples[selectedChar];
-  const ids = ['trim-offset','num-trim-offset','trim-end','num-trim-end'];
+  const ids = ['trim-offset','num-trim-offset','trim-end','num-trim-end','trim-gain','num-trim-gain'];
   $('btn-preview-trim').disabled = !item;
   if (item){
     $('trim-char-title').textContent = `✂️ 「${selectedChar}」の切り出し調整`;
@@ -947,6 +980,7 @@ function updateTrimPanelUI(){
   } else {
     $('trim-char-title').textContent = '✂️ 切り出し調整（音を選んでね）';
     ids.forEach(i => $(i).disabled = true);
+    $('trim-level').textContent = '';
   }
   drawTrimWaveform();
 }
@@ -957,6 +991,8 @@ function syncTrimControls(){
   ['num-trim-offset','num-trim-end'].forEach(id => { $(id).max = dur.toFixed(2); });
   $('trim-offset').value = item.offset; $('num-trim-offset').value = item.offset.toFixed(2);
   $('trim-end').value = end; $('num-trim-end').value = end.toFixed(2);
+  $('trim-gain').value = item.gain || 0; $('num-trim-gain').value = (item.gain || 0).toFixed(1);
+  $('trim-level').textContent = `測定レベル ${sampleLevelDb(item).toFixed(1)} dB ／ 補正後 ${(sampleLevelDb(item) + (item.gain || 0)).toFixed(1)} dB`;
 }
 function setTrim(start, end){
   const v = curVoice(); const item = v.samples[selectedChar]; if (!item) return;
@@ -992,9 +1028,9 @@ async function playTrimmedChar(char){
   const buf = getTrimmedBuffer(ctx, item.buffer, item.offset, item.duration);
   const src = ctx.createBufferSource(); src.buffer = buf;
   const rate = Math.pow(2, pitch / 12); src.playbackRate.value = rate;
-  const g = ctx.createGain(); const now = ctx.currentTime; const d = buf.duration / rate;
-  g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(1, now + 0.008);
-  g.gain.setValueAtTime(1, now + Math.max(0.01, d - 0.03)); g.gain.linearRampToValueAtTime(0, now + d);
+  const g = ctx.createGain(); const now = ctx.currentTime; const d = buf.duration / rate; const pv = dbToLin(item.gain || 0);
+  g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(pv, now + 0.008);
+  g.gain.setValueAtTime(pv, now + Math.max(0.01, d - 0.03)); g.gain.linearRampToValueAtTime(0, now + d);
   src.connect(g); g.connect(makeMaster(ctx)); src.start(now);
 }
 function drawTrimWaveform(){
@@ -1052,6 +1088,9 @@ function setupWaveformEvents(){
     if (waveDrag === 'start') setTrim(Math.min(p.t, curEnd - 0.05), curEnd);
     else setTrim(p.item.offset, Math.max(p.t, p.item.offset + 0.05));
   }
+  const setGain = v => { const it = curVoice().samples[selectedChar]; if (!it || isNaN(v)) return; it.gain = clamp(Math.round(v * 2) / 2, -12, 12); syncTrimControls(); scheduleSave(); };
+  $('trim-gain').addEventListener('input', e => setGain(parseFloat(e.target.value)));
+  $('num-trim-gain').addEventListener('change', e => setGain(parseFloat(e.target.value)));
   $('trim-offset').addEventListener('input', e => { const it = curVoice().samples[selectedChar]; if (it) setTrim(parseFloat(e.target.value), it.offset + it.duration); });
   $('num-trim-offset').addEventListener('change', e => { const it = curVoice().samples[selectedChar]; const v = parseFloat(e.target.value); if (it && !isNaN(v)) setTrim(v, it.offset + it.duration); });
   $('trim-end').addEventListener('input', e => { const it = curVoice().samples[selectedChar]; if (it) setTrim(it.offset, parseFloat(e.target.value)); });
@@ -1743,16 +1782,158 @@ function planSentence(sentence, voice){
   return { items, total, voiceEnd:endMax };
 }
 
-function makeMaster(ctx){
-  const comp = ctx.createDynamicsCompressor();
-  comp.threshold.value = -18; comp.knee.value = 20; comp.ratio.value = 6; comp.attack.value = 0.005; comp.release.value = 0.12;
-  const out = ctx.createGain(); out.gain.value = 0.95;
-  comp.connect(out); out.connect(ctx.destination);
-  return comp;
+/* ---------- ミキサー（音量バランス） ---------- */
+const dbToLin = d => Math.pow(10, d / 20);
+let mixBypass = false;
+let outAnalyser = null;
+
+const MIX_DEFS = [
+  {group:'🧹 ノイズ対策', key:'hpf', label:'ローカット', min:0, max:200, step:10, def:70, unit:'Hz'},
+  {group:'📈 ライダー（自動で音量を均一に）', key:'riderOn', type:'toggle', label:'ライダーをオン', def:true},
+  {key:'riderTarget', label:'目標レベル', min:-30, max:-3, step:1, def:-14, unit:'dB'},
+  {key:'riderRange', label:'補正の最大幅', min:0, max:18, step:1, def:9, unit:'dB'},
+  {key:'riderStrength', label:'効き具合', min:0, max:100, step:5, def:70, unit:'%'},
+  {group:'🗜 コンプレッサー（大きい所を抑える）', key:'compOn', type:'toggle', label:'コンプをオン', def:true},
+  {key:'compThreshold', label:'スレッショルド', min:-60, max:0, step:1, def:-24, unit:'dB'},
+  {key:'compRatio', label:'レシオ', min:1, max:20, step:0.5, def:3, unit:':1'},
+  {key:'compAttack', label:'アタック', min:1, max:100, step:1, def:5, unit:'ms'},
+  {key:'compRelease', label:'リリース', min:20, max:1000, step:10, def:120, unit:'ms'},
+  {key:'compMakeup', label:'メイクアップ', min:0, max:18, step:0.5, def:3, unit:'dB'},
+  {group:'💨 ディエッサー（サ行の刺さりを抑える）', key:'deEssOn', type:'toggle', label:'ディエッサーをオン', def:false},
+  {key:'deEssFreq', label:'対象の周波数', min:3000, max:10000, step:100, def:6500, unit:'Hz'},
+  {key:'deEssThreshold', label:'スレッショルド', min:-60, max:-10, step:1, def:-34, unit:'dB'},
+  {key:'deEssRatio', label:'強さ（レシオ）', min:1, max:12, step:0.5, def:4, unit:':1'}
+];
+const MIX_PRESETS = [
+  {label:'標準', p:{hpf:70, riderOn:true, riderTarget:-14, riderRange:9, riderStrength:70, compOn:true, compThreshold:-24, compRatio:3, compAttack:5, compRelease:120, compMakeup:3, deEssOn:false}},
+  {label:'くっきり', p:{hpf:80, riderOn:true, riderTarget:-13, riderRange:12, riderStrength:85, compOn:true, compThreshold:-28, compRatio:4, compAttack:4, compRelease:100, compMakeup:4, deEssOn:true, deEssFreq:6500, deEssThreshold:-34, deEssRatio:4}},
+  {label:'やわらか', p:{hpf:60, riderOn:true, riderTarget:-16, riderRange:6, riderStrength:50, compOn:true, compThreshold:-20, compRatio:2, compAttack:10, compRelease:200, compMakeup:2, deEssOn:true, deEssFreq:7000, deEssThreshold:-36, deEssRatio:3}},
+  {label:'ささやき向け', p:{hpf:90, riderOn:true, riderTarget:-15, riderRange:12, riderStrength:90, compOn:true, compThreshold:-30, compRatio:4, compAttack:5, compRelease:150, compMakeup:6, deEssOn:true, deEssFreq:6000, deEssThreshold:-38, deEssRatio:5}},
+  {label:'すべてオフ', p:{hpf:0, riderOn:false, compOn:false, deEssOn:false}}
+];
+function defaultMix(){ const m = {}; MIX_DEFS.forEach(d => m[d.key] = d.def); return m; }
+function sanitizeMix(raw){
+  const m = defaultMix(); raw = raw || {};
+  MIX_DEFS.forEach(d => {
+    if (d.type === 'toggle'){ if (raw[d.key] !== undefined) m[d.key] = !!raw[d.key]; }
+    else { const v = Number(raw[d.key]); if (raw[d.key] !== undefined && !isNaN(v)) m[d.key] = clamp(v, d.min, d.max); }
+  });
+  return m;
 }
+function effectiveMix(voice){
+  const base = (voice && voice.mix) || defaultMix();
+  return mixBypass ? Object.assign({}, base, { hpf:0, riderOn:false, compOn:false, deEssOn:false }) : base;
+}
+function setMixBypass(v){ mixBypass = !!v; }
+function buildMixRows(){
+  const box = $('mix-rows'); box.innerHTML = '';
+  MIX_DEFS.forEach(d => {
+    if (d.group){ const h = document.createElement('div'); h.className = 'mix-group'; h.textContent = d.group; box.appendChild(h); }
+    const row = document.createElement('div'); row.className = 'param-row';
+    if (d.type === 'toggle'){
+      row.innerHTML = `<input type="checkbox" id="mix-chk-${d.key}" style="width:18px;height:18px;accent-color:var(--primary)"><label for="mix-chk-${d.key}" style="width:auto">${d.label}</label>`;
+      box.appendChild(row);
+      $('mix-chk-' + d.key).addEventListener('change', e => setMix(d.key, e.target.checked));
+    } else {
+      row.innerHTML = `<label title="Wタップで初期値">${d.label}</label>
+        <input type="range" id="mix-rng-${d.key}" min="${d.min}" max="${d.max}" step="${d.step}">
+        <input type="number" class="num-input" id="mix-num-${d.key}" min="${d.min}" max="${d.max}" step="${d.step}"><span class="unit" style="width:26px">${d.unit}</span>`;
+      box.appendChild(row);
+      $('mix-rng-' + d.key).addEventListener('input', e => setMix(d.key, parseFloat(e.target.value)));
+      $('mix-num-' + d.key).addEventListener('change', e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setMix(d.key, v); });
+      bindDoubleTapReset(row.querySelector('label'), () => setMix(d.key, d.def));
+    }
+  });
+  const pc = $('mix-presets'); pc.innerHTML = '';
+  MIX_PRESETS.forEach(pr => {
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = pr.label;
+    b.onclick = () => { Object.assign(curVoice().mix, pr.p); curVoice().mix = sanitizeMix(curVoice().mix); applyMixToUI(); scheduleSave(); };
+    pc.appendChild(b);
+  });
+}
+function setMix(key, val){
+  const d = MIX_DEFS.find(x => x.key === key); if (!d) return;
+  const m = curVoice().mix;
+  if (d.type === 'toggle') m[key] = !!val;
+  else { val = clamp(Math.round(val / d.step) * d.step, d.min, d.max); m[key] = parseFloat(val.toFixed(3)); }
+  applyMixToUI(); scheduleSave();
+}
+function applyMixToUI(){
+  const v = curVoice(); if (!v || !$('mix-rows')) return;
+  const m = v.mix;
+  MIX_DEFS.forEach(d => {
+    if (d.type === 'toggle'){ $('mix-chk-' + d.key).checked = !!m[d.key]; return; }
+    $('mix-rng-' + d.key).value = m[d.key]; $('mix-num-' + d.key).value = Number(m[d.key]).toFixed(decimalsOf(d.step));
+  });
+}
+function sampleLevelDb(s){
+  const key = s.offset + '|' + s.duration;
+  if (s._lvKey === key) return s._lv;
+  const d = s.buffer.getChannelData(0), sr = s.buffer.sampleRate;
+  const a = Math.max(0, Math.floor(s.offset * sr)), b = Math.min(d.length, a + Math.floor(s.duration * sr));
+  let peak = 0; for (let i = a; i < b; i++){ const v = Math.abs(d[i]); if (v > peak) peak = v; }
+  let db = -90;
+  if (peak > 1e-5){
+    const th = peak * 0.1; let sum = 0, n = 0;
+    for (let i = a; i < b; i++){ const v = d[i]; if (Math.abs(v) >= th){ sum += v * v; n++; } }
+    db = 20 * Math.log10(Math.max(Math.sqrt(sum / Math.max(1, n)), 1e-6));
+  }
+  s._lvKey = key; s._lv = db; return db;
+}
+function levelAllSamples(){
+  const v = curVoice(); const entries = Object.entries(v.samples).filter(([c]) => !breathList.includes(c));
+  if (!entries.length) return toast('録音データがありません');
+  const target = v.mix.riderTarget;
+  entries.forEach(([, s]) => { const lv = sampleLevelDb(s); s.gain = lv <= -80 ? 0 : clamp(Math.round((target - lv) * 2) / 2, -12, 12); });
+  syncTrimControls(); scheduleSave(); toast(`${entries.length}個の音量を揃えました🎚`);
+}
+function resetSampleGains(){
+  Object.values(curVoice().samples).forEach(s => { s.gain = 0; });
+  syncTrimControls(); scheduleSave(); toast('音量補正をリセットしました');
+}
+
+function makeMaster(ctx, live){
+  const lim = ctx.createDynamicsCompressor();
+  lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.003; lim.release.value = 0.1;
+  const out = ctx.createGain(); out.gain.value = 0.95; lim.connect(out);
+  if (live){ outAnalyser = ctx.createAnalyser(); outAnalyser.fftSize = 1024; out.connect(outAnalyser); outAnalyser.connect(ctx.destination); }
+  else out.connect(ctx.destination);
+  return lim;
+}
+function makeVoiceBus(ctx, voice, dest){
+  const m = effectiveMix(voice);
+  const input = ctx.createGain(); let tail = input;
+  if (m.hpf > 0){
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = m.hpf; hp.Q.value = -3.01;
+    tail.connect(hp); tail = hp;
+  }
+  if (m.deEssOn){
+    // 帯域分割（LR2）：低域はそのまま、高域（サ行帯域）だけを圧縮して合成
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = m.deEssFreq; lp.Q.value = -6.02;
+    const hp2 = ctx.createBiquadFilter(); hp2.type = 'highpass'; hp2.frequency.value = m.deEssFreq; hp2.Q.value = -6.02;
+    const inv = ctx.createGain(); inv.gain.value = -1;
+    const dc = ctx.createDynamicsCompressor();
+    dc.threshold.value = m.deEssThreshold; dc.knee.value = 4; dc.ratio.value = m.deEssRatio; dc.attack.value = 0.002; dc.release.value = 0.05;
+    const sum = ctx.createGain();
+    tail.connect(lp); lp.connect(sum);
+    tail.connect(hp2); hp2.connect(inv); inv.connect(dc); dc.connect(sum);
+    tail = sum;
+  }
+  if (m.compOn){
+    const c = ctx.createDynamicsCompressor();
+    c.threshold.value = m.compThreshold; c.knee.value = 6; c.ratio.value = m.compRatio;
+    c.attack.value = m.compAttack / 1000; c.release.value = m.compRelease / 1000;
+    const mk = ctx.createGain(); mk.gain.value = dbToLin(m.compMakeup);
+    tail.connect(c); c.connect(mk); tail = mk;
+  }
+  tail.connect(dest);
+  return input;
+}
+
 function scheduleItem(ctx, dest, voice, sentence, item, t0, sources){
   const sample = findSample(voice, item.char); if (!sample) return;
   const p = sentence.params, start = t0 + item.start, isBreath = item.kind === 'breath';
+  const mix = effectiveMix(voice);
   const buf = getTrimmedBuffer(ctx, sample.buffer, sample.offset, sample.duration);
   const src = ctx.createBufferSource(); src.buffer = buf;
   const smooth = p.smoothness / 100, overlap = 0.08 * smooth, playDur = item.dur;
@@ -1768,16 +1949,37 @@ function scheduleItem(ctx, dest, voice, sentence, item, t0, sources){
     else { f.type = 'lowpass'; f.frequency.value = Math.max(500, 3500 + p.tone * 250); }
     src.connect(f); last = f;
   }
+  // 音量：個別補正 + ライダー（目標レベルに近づける）
+  let extraDb = sample.gain || 0;
+  if (!isBreath && mix.riderOn){
+    const lv = sampleLevelDb(sample) + (sample.gain || 0);
+    if (lv > -80) extraDb += clamp((mix.riderTarget - lv) * mix.riderStrength / 100, -mix.riderRange, mix.riderRange);
+  }
+  const vol = p.volume * dbToLin(extraDb);
   const g = ctx.createGain();
   const attack = Math.min(0.02 + 0.03 * smooth, playDur * 0.25), release = Math.min(0.02 + 0.05 * smooth, playDur * 0.4);
   g.gain.setValueAtTime(0, start);
-  g.gain.linearRampToValueAtTime(p.volume, start + attack);
-  g.gain.setValueAtTime(p.volume, Math.max(start + attack, start + playDur - release));
+  g.gain.linearRampToValueAtTime(vol, start + attack);
+  g.gain.setValueAtTime(vol, Math.max(start + attack, start + playDur - release));
   g.gain.linearRampToValueAtTime(0, start + playDur + overlap);
   last.connect(g); g.connect(dest);
   src.start(start); src.stop(start + playDur + overlap + 0.02);
   if (sources) sources.push(src);
 }
+
+function outMeterLoop(id){
+  const buf = new Float32Array(1024);
+  const loop = () => {
+    const el = document.querySelector('.out-level-fill');
+    if (player.id !== id || !outAnalyser || !el) return;
+    outAnalyser.getFloatTimeDomainData(buf); let pk = 0;
+    for (let i = 0; i < buf.length; i++){ const a = Math.abs(buf[i]); if (a > pk) pk = a; }
+    el.style.width = (clamp(pk, 0, 1) * 100) + '%'; el.classList.toggle('clip', pk > 0.95);
+    requestAnimationFrame(loop);
+  };
+  loop();
+}
+function resetOutMeter(){ const el = document.querySelector('.out-level-fill'); if (el){ el.style.width = '0%'; el.classList.remove('clip'); } }
 
 /* =====================================================================
    再生コントロール
@@ -1789,7 +1991,7 @@ function updatePlayUI(){
 function stopPlayback(){
   player.id++; player.playing = false;
   player.sources.forEach(s => { try { s.stop(); } catch(e){} });
-  player.sources = []; cancelAnimationFrame(player.raf); player.cur = null;
+  player.sources = []; cancelAnimationFrame(player.raf); player.cur = null; resetOutMeter();
   if (highlightVi !== -1){ highlightVi = -1; drawIntonationGraph(); }
   updatePlayUI();
 }
@@ -1813,7 +2015,7 @@ async function playSentences(indices){
   const ctx = await initAudio();
   stopPlayback();
   const myId = ++player.id; player.playing = true; updatePlayUI();
-  const master = makeMaster(ctx);
+  const master = makeMaster(ctx, true); outMeterLoop(myId);
   for (let k = 0; k < indices.length; k++){
     if (player.id !== myId) return;
     const idx = indices[k];
@@ -1821,7 +2023,8 @@ async function playSentences(indices){
     const s = sentences[idx], voice = voiceById(s.voiceId);
     const plan = planSentence(s, voice);
     const t0 = ctx.currentTime + 0.06;
-    plan.items.forEach(it => scheduleItem(ctx, master, voice, s, it, t0, player.sources));
+    const bus = makeVoiceBus(ctx, voice, master);
+    plan.items.forEach(it => scheduleItem(ctx, bus, voice, s, it, t0, player.sources));
     player.cur = { plan, t0, idx }; startHighlightLoop(myId);
     await waitUntilAudioTime(t0 + plan.total + (k < indices.length - 1 ? settings.slotGap : 0), myId);
   }
@@ -1862,9 +2065,14 @@ async function exportWavFor(indices, base, withSrt){
   const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const off = new OAC(1, Math.ceil(sr * totalSec), sr);
   const master = makeMaster(off);
-  plans.forEach(x => x.plan.items.forEach(it => scheduleItem(off, master, x.voice, x.s, it, x.start, null)));
+  plans.forEach(x => { const bus = makeVoiceBus(off, x.voice, master); x.plan.items.forEach(it => scheduleItem(off, bus, x.voice, x.s, it, x.start, null)); });
   toast('書き出し中…⏳');
   const rendered = await off.startRendering();
+  if (settings.normExport){
+    const dd = rendered.getChannelData(0); let pk = 0;
+    for (let i = 0; i < dd.length; i++){ const a = Math.abs(dd[i]); if (a > pk) pk = a; }
+    if (pk > 0.001){ const gk = 0.89 / pk; for (let i = 0; i < dd.length; i++) dd[i] *= gk; }
+  }
   const stamp = Date.now();
   downloadBlob(new Blob([bufferToWavArrayBuffer(rendered)], { type:'audio/wav' }), `${base}_${stamp}.wav`);
   if (withSrt){
@@ -1882,8 +2090,8 @@ function exportWavAll(){ exportWavFor(sentences.map((_, i) => i), 'voice_all', s
 
 /* ---------- ライブラリ／プロジェクト ---------- */
 function voiceToJSON(v){
-  return { id:v.id, icon:v.icon, name:v.name,
-    samples: Object.fromEntries(Object.entries(v.samples).map(([c, s]) => [c, { data:'data:audio/wav;base64,' + arrayBufferToBase64(s.wav), offset:s.offset, duration:s.duration }])) };
+  return { id:v.id, icon:v.icon, name:v.name, mix:v.mix,
+    samples: Object.fromEntries(Object.entries(v.samples).map(([c, s]) => [c, { data:'data:audio/wav;base64,' + arrayBufferToBase64(s.wav), offset:s.offset, duration:s.duration, gain:s.gain || 0 }])) };
 }
 function exportVoice(){
   const v = curVoice(); if (!Object.keys(v.samples).length) return toast('録音データがありません');
@@ -1903,14 +2111,14 @@ async function fillSamples(voice, rawSamples){
       const buffer = await decodeWav(ab);
       const off = info.offset !== undefined ? Number(info.offset) : 0.2;
       const dur = info.duration ? Number(info.duration) : 0.6;
-      voice.samples[char] = { buffer, wav:ab, offset:off, duration:dur };
+      voice.samples[char] = { buffer, wav:ab, offset:off, duration:dur, gain:clamp(Number(info.gain) || 0, -12, 12) };
     } catch(e){ console.warn('sample decode failed', char, e); }
   }
 }
 async function loadProjectData(data){
   const nv = [];
   for (const rv of (data.voices || []).slice(0, MAX_VOICES)){
-    const v = createVoice(rv.name, rv.icon); if (rv.id) v.id = rv.id;
+    const v = createVoice(rv.name, rv.icon); if (rv.id) v.id = rv.id; v.mix = sanitizeMix(rv.mix);
     await fillSamples(v, rv.samples); nv.push(v);
   }
   if (!nv.length) nv.push(createVoice('マイボイス', '🎙️'));
@@ -1935,6 +2143,7 @@ async function importFile(input){
       const v = curVoice();
       if (Object.keys(v.samples).length && !confirm(`ボイス「${v.name}」の録音を、読み込んだデータで置き換えますか？`)) return;
       if (data.icon) v.icon = data.icon; if (data.name) v.name = data.name;
+      if (data.mix) v.mix = sanitizeMix(data.mix);
       await fillSamples(v, data.samples); selectedChar = null;
     } else throw new Error('unknown format');
     renderAll(); scheduleSave(); toast('📥 読み込みました！');
@@ -2011,6 +2220,7 @@ function bindSettings(){
   bind('set-gap', 'slotGap', el => parseFloat(el.value), () => { $('v-gap').textContent = settings.slotGap.toFixed(1); });
   $('v-gap').textContent = settings.slotGap.toFixed(1);
   bind('set-srt', 'exportSrt', el => el.checked);
+  bind('set-normexp', 'normExport', el => el.checked);
 }
 function setupEvents(){
   $('char-grid').addEventListener('click', onGridClick);
@@ -2054,7 +2264,7 @@ async function loadProject(){
 }
 async function init(){
   loadSettings(); applyTheme(); buildSwatches(); applyTheme();
-  buildParamRows(); bindSettings(); setupEvents();
+  buildParamRows(); buildMixRows(); bindSettings(); setupEvents();
   voices = [createVoice('マイボイス', '🎙️')];
   sentences = [createSentence('こんにちわ', voices[0].id)];
   await loadProject();
