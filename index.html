@@ -161,7 +161,7 @@ select.text-in{padding-right:4px}
 .toast.error{background:var(--rec);color:#fff}
 .toast.hide{opacity:0;transform:translateY(8px)}
 .app-footer{text-align:center;margin-top:20px;padding:12px;font-size:.75rem;color:var(--text-sub);border-top:1px dashed var(--border);width:100%;max-width:1400px;display:flex;flex-direction:column;gap:4px;align-items:center}
-.mobile-nav{display:none;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);gap:6px;padding:6px;background:var(--card);border:1px solid var(--border);border-radius:999px;box-shadow:var(--shadow);z-index:50}
+.mobile-nav{display:none;position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);gap:6px;padding:5px;background:var(--card);border:1px solid var(--border);border-radius:999px;box-shadow:var(--shadow);z-index:50}
 @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
 
 @media (max-width:900px){
@@ -169,8 +169,8 @@ select.text-in{padding-right:4px}
   .container[data-view="voice"] #panel-talk{display:none}
   .container[data-view="talk"] #panel-voice{display:none}
   .mobile-nav{display:flex}
-  body{padding-bottom:84px}
-  .toast-area{bottom:76px}
+  body{padding-top:62px;padding-bottom:90px}
+  .toast-area{bottom:auto;top:66px}
   .param-row label{width:96px}
 }
 @media (orientation:landscape) and (max-height:600px){
@@ -735,7 +735,15 @@ async function saveProject(){
    オーディオ基盤
    ===================================================================== */
 function getCtx(){ if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
-async function initAudio(){ const c = getCtx(); if (c.state === 'suspended') { try { await c.resume(); } catch(e){} } return c; }
+async function initAudio(){
+  // iPhone：マナーモード中でも「再生」として鳴らす（対応ブラウザのみ）
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+  const c = getCtx();
+  if (c.state === 'suspended' || c.state === 'interrupted') { try { await c.resume(); } catch(e){} }
+  return c;
+}
+// 最初のタップで音声を有効化（スマホ対策）
+['pointerdown','touchend','click'].forEach(ev => document.addEventListener(ev, () => { initAudio(); }, { once:true, passive:true }));
 async function initMic(){
   if (micStream && micStream.active) return;
   micStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:true, autoGainControl:false } });
